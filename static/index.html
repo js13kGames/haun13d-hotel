@@ -1,0 +1,88 @@
+<html>
+    <head>
+        <title>JS13K 2023</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background-color: #000;
+            }
+            .xr-button-container {
+                display: flex;
+                justify-content: center;
+            }
+            #xr-button {
+                transition: .2s;
+                width: 90%;
+                position: fixed;
+                height: 15vh;
+                top: 50%;
+                text-align: center;
+                font-size: 5em;
+                font-family: fantasy;
+                font-weight: 100;
+                width: 90%;
+                text-shadow: 0px 2px 0px red, 0 -6px 2px #9E9E9E;
+            }
+            #xr-button:hover{
+                /* add animation transition in .2 seconds */
+                transition: .2s;
+                font-size: 5.2em;
+                color:rgba(42, 88, 79,1);
+            }
+            .title-box {
+                display: flex;
+                justify-content: center;
+            }
+            .title {
+                position: fixed;
+                width: 90%;
+                height: 25vh;
+                top: 35%;
+                left: 5%;
+                text-align: center;
+                font-size: 7em;
+                font-family: 'Brush Script MT', cursive;
+                font-weight: 700;
+            }
+            .title .sub{
+                color: red;
+                font-size: .65em;
+                font-weight: 100;
+                position: relative;
+                display: inline-block;
+                
+                transform: rotate(15deg) translate(-40px, 0px);
+                font-family: sans-serif;
+                vertical-align: top;
+            }
+            .score-container {
+                display: flex;
+                justify-content: center;
+                display: none;
+            }
+            .score-text{
+                position: fixed;
+                width: 90%;
+                height: 25vh;
+                top: 65%;
+                left: 5%;
+                text-align: center;
+                font-size: 4em;
+                font-family: sans-serif;
+                font-weight: 100;
+            }
+            .game-over{
+                display: none;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="xr-button-container">
+            <div id="xr-button">Play</div>
+        </div>
+        <script src="index.js"></script>
+    </body>
+</html>

@@ -1,11 +1,34 @@
 {
-  "name": "js13k2024",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC"
+    "name": "js13k2024",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "copyHtml": "copyfiles -a -u 1 ./static/**/* ./dist",
+        "build-old": "esbuild ./src/index.ts --bundle --minify --drop:console --target=ES2022 --format=esm --outfile=./dist/index.js && npm run copyHtml",
+        "build": "node ./tools/build.js  && npm run copyHtml",
+        "build:prod": "node ./tools/build-prod.js  && npm run copyHtml",
+        "build:watch": "esbuild ./src/index.ts --bundle --minify --sourcemap --watch --target=ES2022 --format=esm --outfile=./dist/index.js --servedir=dist ",
+        "build:meta": "esbuild ./src/index.ts --bundle --minify --drop:console --target=ES2022 --format=esm --outfile=./dist/index.js --metafile=meta.json && npm run copyHtml",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "doc": "typedoc --out docs --entryPointStrategy Expand ./src --watch",
+        "doc:run": "http-server docs -o -c-1 -p 7777",
+        "start": "http-server ./dist -o -c-1 -p 1337"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "esbuild": "^0.23.0",
+        "esbuild-plugin-webgl": "^0.0.3"
+    },
+    "devDependencies": {
+        "@types/webxr": "^0.5.19",
+        "@typescript-eslint/eslint-plugin": "^8.1.0",
+        "@typescript-eslint/parser": "^8.1.0",
+        "copyfiles": "^2.4.1",
+        "eslint": "^9.9.0",
+        "ts-node": "^10.9.2",
+        "typedoc": "^0.26.5",
+        "typescript": "^5.5.4"
+    }
 }

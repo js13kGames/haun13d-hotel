@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "forceConsistentCasingInFileNames": true,
+        "pretty": true,
+        "allowJs": true,
+        "strict":true,
+        "noEmit": true,
+        "noImplicitAny": false,
+        "noImplicitOverride": true,
+        "strictNullChecks": true,
+        "target": "esnext",
+        "module": "esnext",
+        "resolveJsonModule": true,
+        "moduleResolution": "node",
+        "outDir": "dist",
+        "lib": ["esnext", "dom"],
+        "esModuleInterop": true,
+        "skipLibCheck": true
+    },
+    "exclude": ["node_modules", "wasm test"],
+    "include": ["src/**/*","src/**/.vert","src/**/.frag"],
+    "typedocOptions": {
+        "entryPoints": ["./src/index.ts"],
+        "out": "docs"
+    }
+}
