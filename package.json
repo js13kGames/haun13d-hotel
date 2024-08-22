@@ -19,7 +19,9 @@
     "license": "ISC",
     "dependencies": {
         "esbuild": "^0.23.0",
-        "esbuild-plugin-webgl": "^0.0.3"
+        "esbuild-plugin-webgl": "^0.0.3",
+        "rollup": "^4.20.0",
+        "rollup-plugin-esbuild": "^6.1.1"
     },
     "devDependencies": {
         "@types/webxr": "^0.5.19",

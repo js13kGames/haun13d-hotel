@@ -98,3 +98,5 @@ ttt = (td, only_this_index = -1, stack_depth = 0) => {
         return e;
     });
 };
+
+export default ttt;

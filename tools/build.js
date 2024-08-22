@@ -7,6 +7,7 @@ async function serve() {
         entryPoints: ['./src/index.ts'],
         bundle: true,
         minify: true,
+        sourcemap: true,
         target: 'ES2022',
         format: 'esm',
         outfile: './dist/index.js',
@@ -19,7 +20,7 @@ async function serve() {
             '.glsl': 'text',
         },
     });
-    await ctx.watch();
+    await ctx.watch().then(() => console.log('Watching for changes...'));
 
     await ctx.serve({ port: 8080, servedir: './dist', host: 'localhost' });
     console.log('Server is running on http://localhost:8080');
