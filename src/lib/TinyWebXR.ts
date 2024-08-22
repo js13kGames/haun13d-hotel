@@ -6,19 +6,18 @@
 
 import vertexShader from '../shaders/shader.vert';
 import fragmentShader from '../shaders/shader.frag';
-//import {Matrix4} from './Math/Matrix4';
 
-// /**
-//  * The DOMMatrix defined in the DOM type doesn't allow another in its contructor while
-//  * this is valid in the browser. This is a workaround to allow the use of DOMMatrix in the
-//  */
+/**
+ * The DOMMatrix defined in the DOM type doesn't allow another in its contructor while
+ * this is valid in the browser. This is a workaround to allow the use of DOMMatrix in the
+ */
 interface DOMMatrixConstructor {
     new (init?: DOMMatrix | DOMMatrixInit | string | Float32Array): DOMMatrix;
 }
 
 declare var DOMMatrix: DOMMatrixConstructor;
 
-type objectType = 'camera' | 'light' | 'group' | 'object' | 'cube';
+type objectType = 'light' | 'group' | 'leftHand' | 'rightHand' | 'object' | 'cube';
 interface objectState {
     size?: number;
     /**
@@ -38,7 +37,7 @@ interface objectState {
      */
     t?: HTMLCanvasElement | HTMLImageElement;
     /**
-     * Camera, light, group or object
+     * light, group or object
      */
     type?: objectType;
     /**
@@ -61,7 +60,7 @@ interface objectState {
     M?: DOMMatrix;
     m?: DOMMatrix;
 
-    // no idea what these are
+    // no idea what these are, possibly for animations
     f?: number;
     a?: number;
 }
@@ -116,14 +115,11 @@ export class TinyWebXR {
         }
 
         // Set the scene's background color (RGBA)
-        this.gl.clearColor(1, 1, 1, 1);
-
-        this.setClearColor('fff');
+        this.setClearColor('000');
 
         // Clear the color and depth buffer
         this.gl.enable(this.gl.DEPTH_TEST);
 
-        //this.camera({type: 'camera'});
         this.light({type: 'light', y: -1});
         this.defineCube();
     }
@@ -204,20 +200,12 @@ export class TinyWebXR {
             this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, glLayer.framebuffer);
             this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
+            // Render both views, for left and right eyes
             for (const view of pose.views) {
                 const viewport = session.renderState.baseLayer?.getViewport(view);
                 if (viewport) {
                     this.gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
                 }
-
-                // Create the view matrix from the pose using DOMMatrix
-                // const viewMatrix = Matrix4.from(view.transform.inverse.matrix);
-
-                // // Create the projection matrix from the view's projection matrix
-                // const projectionMatrix = new Matrix4().from(view.projectionMatrix);
-
-                // Premultiply the view matrix with the projection matrix to get the pv matrix
-                //const pvMatrix = new Matrix4().copy(view.projectionMatrix).multiply(view.transform.inverse.matrix);
 
                 // Send projectoin matrix to the shader
                 this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.program, 'p'), false, view.projectionMatrix);
@@ -227,19 +215,6 @@ export class TinyWebXR {
                     false,
                     view.transform.inverse.matrix
                 );
-
-                // If the camera is in a group, premultiply the camera matrix by the group's model matrix
-                // if (this.next['camera'].g) {
-                //     const cameraMatrix = this.animation('camera');
-                //     cameraMatrix.preMultiplySelf(
-                //         this.next[this.next['camera'].g].M || this.next[this.next['camera'].g].m
-                //     );
-                //     this.gl.uniformMatrix4fv(
-                //         this.gl.getUniformLocation(this.program, 'eye'),
-                //         false,
-                //         cameraMatrix.toFloat32Array()
-                //     );
-                // }
 
                 // Render all the objects in the scene
                 for (const i in this.next) {
@@ -275,79 +250,6 @@ export class TinyWebXR {
             this.lerp('light', 'y'),
             this.lerp('light', 'z')
         );
-
-        // // ---------------------------------
-        // if (this.next['camera'].g) {
-        //     this.render(this.next[this.next['camera'].g], dt, true);
-        // }
-
-        // // Create a matrix called v containing the current camera transformation
-        // const v = this.animation('camera');
-
-        // // If the camera is in a group
-        // if (this.next['camera'].g) {
-        //     // premultiply the camera matrix by the group's model matrix.
-        //     v.preMultiplySelf(this.next[this.next.camera.g].M || this.next[this.next.camera.g].m);
-        // }
-        // return;
-        // // Send it to the shaders as the Eye matrix
-        // this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.program, 'eye'), false, v.toFloat32Array());
-
-        // // Invert it to obtain the View matrix
-        // v.invertSelf();
-
-        // // Premultiply it with the Perspective matrix to obtain a Projection-View matrix
-        // v.preMultiplySelf(this.projection);
-
-        // // send it to the shaders as the pv matrix
-        // this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.program, 'pv'), false, v.toFloat32Array());
-
-        // // Clear canvas
-        // this.gl.clear(16640 /* W.gl.COLOR_BUFFER_BIT | W.gl.DEPTH_BUFFER_BIT */);
-
-        // // Render all the objects in the scene
-        // for (const i in this.next) {
-        //     // Render the shapes with no texture and no transparency (RGB1 color)
-        //     if (!this.next[i].t && this.col(this.next[i].b!)[3] == 1) {
-        //         this.render(this.next[i], dt);
-        //     }
-
-        //     // Add the objects with transparency (RGBA or texture) in an array
-        //     else {
-        //         transparent.push(this.next[i]);
-        //     }
-        // }
-
-        // // Order transparent objects from back to front
-        // transparent.sort((a, b) => {
-        //     // Return a value > 0 if b is closer to the camera than a
-        //     // Return a value < 0 if a is closer to the camera than b
-        //     return this.dist(b) - this.dist(a);
-        // });
-
-        // // Enable alpha blending
-        // this.gl.enable(3042 /* BLEND */);
-
-        // // Render all transparent objects
-        // for (const i of transparent) {
-        //     // Disable depth buffer write if it's a plane or a billboard to allow transparent objects to intersect planes more easily
-        //     if (['plane', 'billboard'].includes(i.type!)) this.gl.depthMask(false);
-
-        //     this.render(i, dt);
-
-        //     this.gl.depthMask(true);
-        // }
-
-        // // Disable alpha blending for the next frame
-        // this.gl.disable(3042 /* BLEND */);
-
-        // // Transition the light's direction and send it to the shaders
-        // this.gl.uniform3f(
-        //     this.gl.getUniformLocation(this.program, 'light'),
-        //     this.lerp('light', 'x'),
-        //     this.lerp('light', 'y'),
-        //     this.lerp('light', 'z')
-        // );
     }
 
     // Render an object
@@ -675,11 +577,6 @@ export class TinyWebXR {
     delete = (n: string, delay = 1) =>
         setTimeout(() => {
             delete this.next[n];
-        }, delay);
-
-    camera = (t: objectState, delay = 1) =>
-        setTimeout(() => {
-            this.setState(t, (t.n = 'camera'));
         }, delay);
 
     light = (t: objectState, delay = undefined) =>
