@@ -17,7 +17,6 @@ interface DOMMatrixConstructor {
 
 declare var DOMMatrix: DOMMatrixConstructor;
 
-type objectType = 'light' | 'group' | 'leftHand' | 'rightHand' | 'object' | 'cube';
 interface objectState {
     size?: number;
     /**
@@ -39,7 +38,7 @@ interface objectState {
     /**
      * light, group or object
      */
-    type?: objectType;
+    type?: string;
     /**
      * Mix between the object's color and the texture (0 to 1)
      */
@@ -121,7 +120,8 @@ export class TinyWebXR {
         this.gl.enable(this.gl.DEPTH_TEST);
 
         this.light({type: 'light', y: -1});
-        this.defineCube();
+        this._defineCube();
+        this._definePlane();
     }
 
     setClearColor(color: string) {
@@ -403,7 +403,7 @@ export class TinyWebXR {
         console.log('program:', this.gl.getProgramInfoLog(this.program) || 'OK');
     }
 
-    private setState(state: objectState, type: objectType | undefined = undefined) {
+    private setState(state: objectState, type: string | undefined = undefined) {
         //, texture, i, normal = [], A, B, C, Ai, Bi, Ci, AB, BC) => {
         // Custom name or default name ('o' + auto-increment)
         state.n ||= 'o' + this.objs++;
@@ -425,8 +425,8 @@ export class TinyWebXR {
                 5121 /* UNSIGNED_BYTE */,
                 state.t
             );
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+            this.gl.texParameteri(3553, 10241 /* TEXTURE_MIN_FILTER */, 9728 /* NEAREST */);
+            this.gl.texParameteri(3553, 10240 /* TEXTURE_MAG_FILTER */, 9728 /* NEAREST */);
             this.gl.generateMipmap(3553 /* TEXTURE_2D */);
             this.textures[state.t.id] = texture;
         }
@@ -563,7 +563,7 @@ export class TinyWebXR {
         }
     };
 
-    instance = (t: objectState, type: objectType) => this.setState(t, type);
+    instance = (t: objectState, type: string) => this.setState(t, type);
 
     // Built-in objects
     // ----------------
@@ -585,8 +585,15 @@ export class TinyWebXR {
                   this.setState(t, (t.n = 'light'));
               }, delay)
             : this.setState(t, (t.n = 'light'));
+    private _definePlane() {
+        this.add('plane', {
+            vertices: [0.5, 0.5, 0, -0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0],
 
-    defineCube() {
+            uv: [1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0],
+        });
+    }
+
+    private _defineCube() {
         this.add('cube', {
             vertices: [
                 0.5,
