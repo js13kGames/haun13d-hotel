@@ -1,0 +1,23 @@
+# TODO
+
+Must have:
+
+    TinyWebXR:
+        ✔ Controller support @done(24-08-27 21:58)
+        ☐ Trigger support
+
+    Game:
+        Ghosts:
+            ☐ Spawn
+            ☐ Move
+            ☐ Kill
+        ☐ Hotel Floor Model
+
+Should have:
+    ☐ Better lighting, more sources and omni lights
+    ☐ Batching of models per material.
+
+Could have:
+    ☐ A flashlight
+
+Would Like:

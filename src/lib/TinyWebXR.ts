@@ -7,6 +7,8 @@
 import vertexShader from '../shaders/shader.vert';
 import fragmentShader from '../shaders/shader.frag';
 
+const RADDEG = 180 / Math.PI;
+
 /**
  * The DOMMatrix defined in the DOM type doesn't allow another in its contructor while
  * this is valid in the browser. This is a workaround to allow the use of DOMMatrix in the
@@ -17,7 +19,7 @@ interface DOMMatrixConstructor {
 
 declare var DOMMatrix: DOMMatrixConstructor;
 
-interface objectState {
+export interface objectState {
     size?: number;
     /**
      * Width
@@ -59,6 +61,9 @@ interface objectState {
     M?: DOMMatrix;
     m?: DOMMatrix;
 
+    // in case of controllers, this holds the gamepad button values
+    btn?:readonly GamepadButton[];
+
     // no idea what these are, possibly for animations
     f?: number;
     a?: number;
@@ -85,6 +90,7 @@ export class TinyWebXR {
     ambientLight: any;
     program!: WebGLProgram;
 
+    callback: ((dt: number) => void)|undefined;
     /**
      * Creates a new instance of TinyWebXR.
      */
@@ -122,6 +128,9 @@ export class TinyWebXR {
         this.light({type: 'light', y: -1});
         this._defineCube();
         this._definePlane();
+
+        this.add('group', {n:'LH'});
+        this.add('group', {n:'RH'});
     }
 
     setClearColor(color: string) {
@@ -187,12 +196,15 @@ export class TinyWebXR {
         this.lastFrame = now;
 
         session.requestAnimationFrame(this.onXRFrame.bind(this));
-
+        if(this.callback)this.callback(dt);
+    
         const pose = frame.getViewerPose(this.xrRefSpace);
         // Clear canvas
 
         if (pose) {
             let glLayer = session.renderState.baseLayer!;
+
+            this.updateInputSources(frame, this.xrRefSpace);
 
             // If we do have a valid pose, bind the WebGL layer's framebuffer,
             // which is where any content to be displayed on the XRDevice must be
@@ -218,28 +230,30 @@ export class TinyWebXR {
 
                 // Render all the objects in the scene
                 for (const i in this.next) {
-                    //if (!this.next[i].t && this.col(this.next[i].b!)[3] == 1) {
+                    if (!this.next[i].t && this.col(this.next[i].b!)[3] == 1) {
                     this.render(this.next[i], dt);
-                    //} else {
-                    //  transparent.push(this.next[i]);
-                    //}
+                    } else {
+                      transparent.push(this.next[i]);
+                    }
                 }
 
-                // // Order transparent objects from back to front
-                // transparent.sort((a, b) => this.dist(b) - this.dist(a));
+                // Order transparent objects from back to front
+                transparent.sort((a, b) => this.dist(b) - this.dist(a));
 
-                // // Enable alpha blending
-                // this.gl.enable(this.gl.BLEND);
+                // Enable alpha blending
+                this.gl.enable(this.gl.BLEND);
+                // set black to be transparent
+                this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
-                // // Render all transparent objects
-                // for (const i of transparent) {
-                //     if (['plane', 'billboard'].includes(i.type!)) this.gl.depthMask(false);
-                //     this.render(i, dt);
-                //     this.gl.depthMask(true);
-                // }
+                // Render all transparent objects
+                for (const i of transparent) {
+                    if (['plane', 'billboard'].includes(i.type!)) this.gl.depthMask(false);
+                    this.render(i, dt);
+                    this.gl.depthMask(true);
+                }
 
-                // // Disable alpha blending for the next frame
-                // this.gl.disable(this.gl.BLEND);
+                // Disable alpha blending for the next frame
+                this.gl.disable(this.gl.BLEND);
             }
         }
 
@@ -403,7 +417,7 @@ export class TinyWebXR {
         console.log('program:', this.gl.getProgramInfoLog(this.program) || 'OK');
     }
 
-    private setState(state: objectState, type: string | undefined = undefined) {
+    setState(state: objectState, type: string | undefined = undefined) {
         //, texture, i, normal = [], A, B, C, Ai, Bi, Ci, AB, BC) => {
         // Custom name or default name ('o' + auto-increment)
         state.n ||= 'o' + this.objs++;
@@ -517,6 +531,27 @@ export class TinyWebXR {
 
         // Save new state
         this.next[state.n!] = state;
+
+        return state;
+    }
+
+    updateInputSources(frame: XRFrame, refSpace: XRReferenceSpace) {
+        for (const inputSource of frame.session.inputSources) {
+            let gripPose = frame.getPose(inputSource.gripSpace!, refSpace)!;
+            if (!gripPose) continue;
+            const pos = gripPose.transform.position;
+            const rot = this.toEuler(gripPose.transform.orientation);
+            //convert Radiant to Degree
+            rot.x = rot.x * RADDEG;
+            rot.y = rot.y * RADDEG;
+            rot.z = rot.z * RADDEG;
+            let buttons = inputSource.gamepad?.buttons;
+            if (inputSource.handedness == 'left') {
+                this.setState({x: pos.x, y: pos.y, z: pos.z, rx: rot.x, ry: rot.y, rz: rot.z, btn:buttons, n: 'LH'}, 'group');
+            } else {
+                this.setState({x: pos.x, y: pos.y, z: pos.z, rx: rot.x, ry: rot.y, rz: rot.z, btn:buttons, n: 'RH'}, 'group');
+            }
+        }
     }
 
     // Helpers
@@ -539,8 +574,8 @@ export class TinyWebXR {
             : m;
 
     // Compute the distance squared between two objects (useful for sorting transparent items)
-    // dist = (a, b = this.next['camera']) =>
-    //     a?.m && b?.m ? (b.m.m41 - a.m.m41) ** 2 + (b.m.m42 - a.m.m42) ** 2 + (b.m.m43 - a.m.m43) ** 2 : 0;
+    dist = (a, b = this.next['camera']) =>
+         a?.m && b?.m ? (b.m.m41 - a.m.m41) ** 2 + (b.m.m42 - a.m.m42) ** 2 + (b.m.m43 - a.m.m43) ** 2 : 0;
 
     // Set the ambient light level (0 to 1)
     ambient = (a) => (this.ambientLight = a);
@@ -564,7 +599,13 @@ export class TinyWebXR {
     };
 
     instance = (t: objectState, type: string) => this.setState(t, type);
-
+    
+    toEuler = (q: any) => {
+        const x = Math.atan2(2 * (q.w * q.x + q.y * q.z), 1 - 2 * (q.x * q.x + q.y * q.y));
+        const y = Math.asin(2 * (q.w * q.y - q.z * q.x));
+        const z = Math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z));
+        return {x, y, z};
+    }
     // Built-in objects
     // ----------------
     createGroup = (t: objectState) => this.setState(t, 'group');

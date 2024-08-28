@@ -18,10 +18,10 @@ function parseOBJ(objData) {
 
         switch (parts[0]) {
             case 'v':
-                vertices.push(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
+                vertices.push(r(parseFloat(parts[1])), r(parseFloat(parts[2])), r(parseFloat(parts[3])));
                 break;
             case 'vt':
-                uvs.push(parseFloat(parts[1]), parseFloat(parts[2]));
+                uvs.push(parseFloat(r(parts[1])), parseFloat(r(parts[2])));
                 break;
             case 'usemtl':
                 currentMaterial = parts[1];
