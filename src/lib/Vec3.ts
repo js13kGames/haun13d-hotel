@@ -1,3 +1,5 @@
+const DEGRAD = Math.PI / 180;
+
 export class Vec3 {
     x: number;
     y: number;
@@ -34,6 +36,37 @@ export class Vec3 {
         return new Vec3(a.x / length, a.y / length, a.z / length);
     }
 
+    static dirFromRotation(rx, ry, rz): Vec3 {
+        rx *= DEGRAD;
+        ry *= DEGRAD;
+        rz *= DEGRAD;
+
+        const cosX = Math.cos(rx),
+            sinX = Math.sin(rx);
+        const cosY = Math.cos(ry),
+            sinY = Math.sin(ry);
+        const cosZ = Math.cos(rz),
+            sinZ = Math.sin(rz);
+
+        // Forward vector { x: 0, y: 0, z: 1 }
+        // Apply Y rotation
+        let x = sinY;
+        let y = 0;
+        let z = cosY;
+
+        // Apply X rotation
+        let newY = y * cosX - z * sinX;
+        z = y * sinX + z * cosX;
+        y = newY;
+
+        // Apply Z rotation
+        let newX = x * cosZ - y * sinZ;
+        y = x * sinZ + y * cosZ;
+        x = newX;
+
+        return new Vec3(x, y, z);
+    }
+
     /**
  * calculate the distance of the intersection between a ray and a (infinite) plane
  * @param rayOrigin The origin of the ray 
@@ -62,7 +95,7 @@ if (rayPlaneIntersection(rayOrigin, rayDirection, planeOrigin, planeNormal, hitD
         rayDirection: Vec3, // must be normalized
         planeOrigin: Vec3,
         planeNormal: Vec3,
-        radius: number | undefined
+        radius: number | undefined = undefined
     ): number {
         const EPSILON = 1e-8;
 

@@ -7,7 +7,7 @@
 import vertexShader from '../shaders/shader.vert';
 import fragmentShader from '../shaders/shader.frag';
 
-const RADDEG = 180 / Math.PI;
+export const RADDEG = 180 / Math.PI;
 
 /**
  * The DOMMatrix defined in the DOM type doesn't allow another in its contructor while
@@ -62,7 +62,8 @@ export interface objectState {
     m?: DOMMatrix;
 
     // in case of controllers, this holds the gamepad button values
-    btn?:readonly GamepadButton[];
+    btn?: readonly GamepadButton[];
+    fwd?: number[];
 
     // no idea what these are, possibly for animations
     f?: number;
@@ -90,7 +91,7 @@ export class TinyWebXR {
     ambientLight: any;
     program!: WebGLProgram;
 
-    callback: ((dt: number) => void)|undefined;
+    callback: ((dt: number) => void) | undefined;
     /**
      * Creates a new instance of TinyWebXR.
      */
@@ -129,8 +130,8 @@ export class TinyWebXR {
         this._defineCube();
         this._definePlane();
 
-        this.add('group', {n:'LH'});
-        this.add('group', {n:'RH'});
+        this.add('LH', {n: 'LH', type: 'group'});
+        this.add('RH', {n: 'RH', type: 'group'});
     }
 
     setClearColor(color: string) {
@@ -196,8 +197,8 @@ export class TinyWebXR {
         this.lastFrame = now;
 
         session.requestAnimationFrame(this.onXRFrame.bind(this));
-        if(this.callback)this.callback(dt);
-    
+        if (this.callback) this.callback(dt);
+
         const pose = frame.getViewerPose(this.xrRefSpace);
         // Clear canvas
 
@@ -231,9 +232,9 @@ export class TinyWebXR {
                 // Render all the objects in the scene
                 for (const i in this.next) {
                     if (!this.next[i].t && this.col(this.next[i].b!)[3] == 1) {
-                    this.render(this.next[i], dt);
+                        this.render(this.next[i], dt);
                     } else {
-                      transparent.push(this.next[i]);
+                        transparent.push(this.next[i]);
                     }
                 }
 
@@ -537,19 +538,29 @@ export class TinyWebXR {
 
     updateInputSources(frame: XRFrame, refSpace: XRReferenceSpace) {
         for (const inputSource of frame.session.inputSources) {
-            let gripPose = frame.getPose(inputSource.gripSpace!, refSpace)!;
+            //   let gripPose = frame.getPose(inputSource.gripSpace!, refSpace)!;
+            let gripPose = frame.getPose(inputSource.targetRaySpace!, refSpace)!;
+            //   console.log(gripPose.transform.orientation, targetRayPose.transform.orientation);
             if (!gripPose) continue;
             const pos = gripPose.transform.position;
             const rot = this.toEuler(gripPose.transform.orientation);
+            const forward = [0, 0, -1];
+            const fwd = this.applyQuaternion(forward, gripPose.transform.orientation);
             //convert Radiant to Degree
             rot.x = rot.x * RADDEG;
             rot.y = rot.y * RADDEG;
             rot.z = rot.z * RADDEG;
             let buttons = inputSource.gamepad?.buttons;
             if (inputSource.handedness == 'left') {
-                this.setState({x: pos.x, y: pos.y, z: pos.z, rx: rot.x, ry: rot.y, rz: rot.z, btn:buttons, n: 'LH'}, 'group');
+                this.setState(
+                    {x: pos.x, y: pos.y, z: pos.z, rx: rot.x, ry: rot.y, rz: rot.z, fwd: fwd, btn: buttons, n: 'LH'},
+                    'group'
+                );
             } else {
-                this.setState({x: pos.x, y: pos.y, z: pos.z, rx: rot.x, ry: rot.y, rz: rot.z, btn:buttons, n: 'RH'}, 'group');
+                this.setState(
+                    {x: pos.x, y: pos.y, z: pos.z, rx: rot.x, ry: rot.y, rz: rot.z, fwd: fwd, btn: buttons, n: 'RH'},
+                    'group'
+                );
             }
         }
     }
@@ -575,7 +586,7 @@ export class TinyWebXR {
 
     // Compute the distance squared between two objects (useful for sorting transparent items)
     dist = (a, b = this.next['camera']) =>
-         a?.m && b?.m ? (b.m.m41 - a.m.m41) ** 2 + (b.m.m42 - a.m.m42) ** 2 + (b.m.m43 - a.m.m43) ** 2 : 0;
+        a?.m && b?.m ? (b.m.m41 - a.m.m41) ** 2 + (b.m.m42 - a.m.m42) ** 2 + (b.m.m43 - a.m.m43) ** 2 : 0;
 
     // Set the ambient light level (0 to 1)
     ambient = (a) => (this.ambientLight = a);
@@ -599,15 +610,35 @@ export class TinyWebXR {
     };
 
     instance = (t: objectState, type: string) => this.setState(t, type);
-    
+
     toEuler = (q: any) => {
         const x = Math.atan2(2 * (q.w * q.x + q.y * q.z), 1 - 2 * (q.x * q.x + q.y * q.y));
         const y = Math.asin(2 * (q.w * q.y - q.z * q.x));
         const z = Math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z));
         return {x, y, z};
+    };
+
+    /**
+     * Applies rotations from a Quaternion to a vector.
+     * @param v The vector to rotate.
+     * @param q The quaternion to apply.
+     * @returns The rotated vector.
+     */
+    applyQuaternion(v: number[], q: {x: number; y: number; z: number; w: number}): number[] {
+        // Calculate quat * vector
+        const ix = q.w * v[0] + q.y * v[2] - q.z * v[1];
+        const iy = q.w * v[1] + q.z * v[0] - q.x * v[2];
+        const iz = q.w * v[2] + q.x * v[1] - q.y * v[0];
+        const iw = -q.x * v[0] - q.y * v[1] - q.z * v[2];
+
+        // Calculate result * inverse quat
+        return [
+            ix * q.w + iw * -q.x + iy * -q.z - iz * -q.y,
+            iy * q.w + iw * -q.y + iz * -q.x - ix * -q.z,
+            iz * q.w + iw * -q.z + ix * -q.y - iy * -q.x,
+        ];
     }
-    // Built-in objects
-    // ----------------
+
     createGroup = (t: objectState) => this.setState(t, 'group');
 
     move = (t: objectState, delay = 1) =>

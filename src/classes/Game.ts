@@ -1,5 +1,6 @@
-import {objectState, TinyWebXR} from '../lib/TinyWebXR';
+import {objectState, RADDEG, TinyWebXR} from '../lib/TinyWebXR';
 import ttt from '../lib/ttt';
+import {Vec3} from '../lib/Vec3';
 
 // TODO: Remove before release! 😬
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
@@ -8,7 +9,6 @@ export class Game {
     WebXR: TinyWebXR;
     textures: HTMLCanvasElement[] = [];
 
-    bed: objectState;
     ghosts: objectState[] = [];
 
     constructor() {
@@ -83,8 +83,9 @@ export class Game {
         this.WebXR.instance({z: -6, t: this.textures[1], b: 'EEE'}, 'Ceiling');
         this.WebXR.instance({z: -8, t: this.textures[1], b: 'EEE'}, 'Ceiling');
 
-        this.WebXR.instance({g: 'LH', w: 0.1, h: 0.1, d: 0.1, b: '#ff0'}, 'cube');
-        this.WebXR.instance({g: 'RH', rx: -45, t: this.textures[6]}, 'Gun');
+        //this.WebXR.instance({g: 'LH', w: 0.1, h: 0.1, d: 0.1, b: '#ff0'}, 'cube');
+        //this.WebXR.instance({g: 'RH', rx: -45, t: this.textures[6]}, 'Gun');
+        this.WebXR.instance({g: 'RH', t: this.textures[6]}, 'Gun');
 
         this.ghosts.push(this.WebXR.instance({z: -4, x: -0.2, y: 1.4, w: 0.75, h: 1, t: this.textures[5]}, 'plane'));
         this.ghosts.push(this.WebXR.instance({z: -2, x: 0.2, y: 1.4, w: 0.75, h: 1, t: this.textures[5]}, 'plane'));
@@ -98,10 +99,65 @@ export class Game {
     }
 
     t = 0;
+    wasButtonPressed = false;
+
     update(dt: number) {
         this.t += dt;
+        const r = this.WebXR!.next['RH'];
+        let shoot = false;
+        let gunPos: Vec3, gunDir: Vec3;
+
+        if (r && r.btn) {
+            if (r.btn[0].pressed && !this.wasButtonPressed) {
+                this.wasButtonPressed = true;
+                shoot = true;
+                gunPos = new Vec3(r.x!, r.y!, r.z!);
+                gunDir = new Vec3(r.fwd![0], r.fwd![1], r.fwd![2]);
+                this.WebXR.instance(
+                    {
+                        x: r.x!,
+                        y: r.y! + 0.1,
+                        z: r.z!,
+                        rx: r.rx,
+                        ry: r.ry,
+                        rz: r.rz,
+                        w: 0.01,
+                        h: 0.01,
+                        d: 3,
+                        b: '#f00',
+                    },
+                    'cube'
+                );
+            } else if (!r.btn[0].pressed && this.wasButtonPressed) {
+                this.wasButtonPressed = false;
+            }
+        }
+        const hitGhosts: {name: string; d: number}[] = [];
+
         for (let i = 0; i < this.ghosts.length; i++) {
             this.WebXR.setState({n: this.ghosts[i].n, y: Math.sin(this.t / 200 + i) / 6 + 1.5});
+            if (shoot) {
+                const name: string = this.ghosts[i].n!;
+                const d = Vec3.rayPlaneIntersection(
+                    gunPos!,
+                    gunDir!,
+
+                    new Vec3(this.WebXR.next[name].x!, this.WebXR.next[name].y!, this.WebXR.next[name].z!),
+                    new Vec3(0, 0, 1),
+                    1
+                );
+
+                // a ghost was hit when d > 0
+                if (~d) {
+                    hitGhosts.push({name, d});
+                }
+            }
+        }
+
+        if (hitGhosts.length > 0) {
+            hitGhosts.sort((a, b) => a.d - b.d);
+            this.WebXR.delete(hitGhosts[0].name);
+            this.ghosts = this.ghosts.filter((g) => g.n !== hitGhosts[0].name);
         }
     }
 }
