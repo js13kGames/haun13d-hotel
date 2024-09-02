@@ -36,6 +36,12 @@ export class Vec3 {
         return new Vec3(a.x / length, a.y / length, a.z / length);
     }
 
+    static moveForward(p: Vec3, f: Vec3, d: number): Vec3 {
+        const nf = Vec3.normalize(f);
+
+        return {x: p.x + nf.x * d, y: p.y + nf.y * d, z: p.z + nf.z * d};
+    }
+
     static dirFromRotation(rx, ry, rz): Vec3 {
         rx *= DEGRAD;
         ry *= DEGRAD;

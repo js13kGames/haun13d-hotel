@@ -113,11 +113,12 @@ export class Game {
                 shoot = true;
                 gunPos = new Vec3(r.x!, r.y!, r.z!);
                 gunDir = new Vec3(r.fwd![0], r.fwd![1], r.fwd![2]);
-                this.WebXR.instance(
+                const laser = Vec3.moveForward(gunPos, gunDir, 1.8);
+                const l = this.WebXR.instance(
                     {
-                        x: r.x!,
-                        y: r.y! + 0.1,
-                        z: r.z!,
+                        x: laser.x!,
+                        y: laser.y! + 0.1,
+                        z: laser.z!,
                         rx: r.rx,
                         ry: r.ry,
                         rz: r.rz,
@@ -128,6 +129,7 @@ export class Game {
                     },
                     'cube'
                 );
+                this.WebXR.delete(l.n!, 50);
             } else if (!r.btn[0].pressed && this.wasButtonPressed) {
                 this.wasButtonPressed = false;
             }
