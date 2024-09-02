@@ -229,9 +229,14 @@ export class TinyWebXR {
                     view.transform.inverse.matrix
                 );
 
+                // Create Batch per material
+                for (const i in this.next) {
+                    const o = this.next[i];
+                }
+
                 // Render all the objects in the scene
                 for (const i in this.next) {
-                    if (!this.next[i].t && this.col(this.next[i].b!)[3] == 1) {
+                    if (!this.next[i].t && this.col(this.next[i].b ?? '888F')[3] == 1) {
                         this.render(this.next[i], dt);
                     } else {
                         transparent.push(this.next[i]);
@@ -258,13 +263,42 @@ export class TinyWebXR {
             }
         }
 
-        // Transition the light's direction and send it to the shaders
-        this.gl.uniform3f(
-            this.gl.getUniformLocation(this.program, 'light'),
-            this.lerp('light', 'x'),
-            this.lerp('light', 'y'),
-            this.lerp('light', 'z')
+        // Assuming you have an array of light positions called `lightPositions`,
+        // where each light position is a vec3 (an array of 3 numbers)
+        const lightPositions = [
+            [0, 1.5, -4],
+            [0, 1.5, -8],
+            [0, 1.5, 0],
+            // ... up to 10 lights
+        ];
+        const lightColors = [
+            [1, 0, 0, 1],
+            [0, 0, 1, 1],
+            [0.5, 0.5, 0.5, 1],
+            // ... up to 10 lights
+        ];
+
+        // Set the light positions array
+        this.gl.uniform3fv(
+            this.gl.getUniformLocation(this.program, 'light_pos'),
+            new Float32Array(lightPositions.flat())
         );
+
+        // Set the number of active lights
+        this.gl.uniform1i(this.gl.getUniformLocation(this.program, 'num_lights'), lightPositions.length);
+
+        // Assuming you still want to set a single light color
+        this.gl.uniform4fv(this.gl.getUniformLocation(this.program, 'light_col'), new Float32Array(lightColors.flat()));
+        //...this.col(this.lerp('light', 'b')));
+
+        // // Transition the light's direction and send it to the shaders
+        // this.gl.uniform3f(
+        //     this.gl.getUniformLocation(this.program, 'light_pos'),
+        //     this.lerp('light', 'x'),
+        //     this.lerp('light', 'y'),
+        //     this.lerp('light', 'z')
+        // );
+        // this.gl.uniform4f(this.gl.getUniformLocation(this.program, 'light_col'), ...this.col(this.lerp('light', 'b')));
     }
 
     // Render an object
@@ -461,7 +495,7 @@ export class TinyWebXR {
                 ry: 0,
                 rz: 0,
                 b: '888',
-                mode: 4,
+                mode: 4, // default is set to GLEnum.Triangles
                 mix: 0,
                 type,
                 n: state.n,

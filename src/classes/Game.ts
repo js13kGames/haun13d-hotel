@@ -91,6 +91,8 @@ export class Game {
         this.ghosts.push(this.WebXR.instance({z: -2, x: 0.2, y: 1.4, w: 0.75, h: 1, t: this.textures[5]}, 'plane'));
 
         this.WebXR.callback = this.update.bind(this);
+
+        this.WebXR.light({x: 0, y: 1.75, z: -2, b: '44F'});
         // this.WebXR.instance({rx: 90, z: 1, t: this.textures[1]}, 'wall');
         // this.WebXR.instance({z: 2, w: 0.5, h: 0.5, b: '#227'}, 'cube');
         //this.WebXR.instance({b: '#747'}, 'testPlane');
