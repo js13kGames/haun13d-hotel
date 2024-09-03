@@ -1,3 +1,4 @@
+import {audio} from '../lib/audio';
 import {objectState, RADDEG, TinyWebXR} from '../lib/TinyWebXR';
 import ttt from '../lib/ttt';
 import {Vec3} from '../lib/Vec3';
@@ -10,16 +11,31 @@ export class Game {
     textures: HTMLCanvasElement[] = [];
 
     ghosts: objectState[] = [];
+    shootAudio?: AudioBuffer;
 
     constructor() {
-        ttt(
+        const cs = ttt(
             //[[32,32,13119,1,0,-16,4,32,6,32,41784,24856,33316,2,24852,3,2,4100,1],[32,32,95,2,244,1],[32,32,13119,1,-9,-16,6,3,8,8,65521,1,34143,1,-12,-12,6,3,8,8,65521,1,38239,2,13110,1],[32,32,21279,0,4,4,24,24,4,65524,17183,1,0,0,1,6,3,6,65521,1,52417,2,12810,1],[32,32,13119,4,2,0,0,32,32,15,1,4,4,17,16,32,32,65528,8,30591,3,5,16,65535,0,12,"13"]]
             // prettier-ignore
             [[32,32,43103,3,3,16,25647,0,22,"<>",3,0,31,25647,0,22,"> <",2,16918,1],[32,32,47759,0,-1,1,34,6,56504,8,34671,2,34356,1],[32,32,16671,2,43076,2,2,16671,4,0,0,0,8,32,0,0,16671],[32,32,15,2,61448,1,2,1272,1,2,7944,1,1,3,15,4,11,11,18,65528,8,30040,0,0,0,32,4,0,0,15,0,1,1,30,2,33551,12559,65535],[32,32,12559,0,5,5,22,22,7,65522,12559,2,4104,1],[32,32,0,3,-2,26,65535,0,26,"👻"],[32,32,13119,0,1,1,14,14,48072,13128,26239,0,17,1,14,14,63368,24600,45631,0,1,17,14,14,32440,5176,14447,0,17,17,14,14,48632,1144,1999,2,8,1]]
         ).map((x, i) => {
             x.id = 't' + i;
             this.textures.push(x);
+            return x;
         });
+
+        // Draw each texture onto the atlas canvas in the 4x4 grid
+        // Create the main canvas
+        const atlasCanvas = document.createElement('canvas');
+        atlasCanvas.width = 128;
+        atlasCanvas.height = 128;
+        const atlasContext = atlasCanvas.getContext('2d')!;
+        cs.forEach((texture, index) => {
+            const x = (index % 4) * 32;
+            const y = Math.floor(index / 4) * 32;
+            atlasContext.drawImage(texture, x, y, 32, 32);
+        });
+        document.body.appendChild(atlasCanvas);
 
         this.WebXR = new TinyWebXR();
 
@@ -91,7 +107,7 @@ export class Game {
         this.ghosts.push(this.WebXR.instance({z: -2, x: 0.2, y: 1.4, w: 0.75, h: 1, t: this.textures[5]}, 'plane'));
 
         this.WebXR.callback = this.update.bind(this);
-
+        this.WebXR.sessionRequested = this.startVR.bind(this);
         this.WebXR.light({x: 0, y: 1.75, z: -2, b: '44F'});
         // this.WebXR.instance({rx: 90, z: 1, t: this.textures[1]}, 'wall');
         // this.WebXR.instance({z: 2, w: 0.5, h: 0.5, b: '#227'}, 'cube');
@@ -113,6 +129,7 @@ export class Game {
             if (r.btn[0].pressed && !this.wasButtonPressed) {
                 this.wasButtonPressed = true;
                 shoot = true;
+                audio.play(this.shootAudio);
                 gunPos = new Vec3(r.x!, r.y!, r.z!);
                 gunDir = new Vec3(r.fwd![0], r.fwd![1], r.fwd![2]);
                 const laser = Vec3.moveForward(gunPos, gunDir, 1.8);
@@ -164,4 +181,73 @@ export class Game {
             this.ghosts = this.ghosts.filter((g) => g.n !== hitGhosts[0].name);
         }
     }
+
+    startVR() {
+        audio.init();
+        this.shootAudio = audio.createSound(135, this.gun);
+    }
+
+    shoot = [
+        7, // osc1_oct
+        0, // osc1_det
+        0, // osc1_detune
+        0, // osc1_xenv
+        255, // osc1_vol
+        0, // osc1_waveform
+        7, // osc2_oct
+        0, // osc2_det
+        0, // osc2_detune
+        1, // osc2_xenv
+        255, // osc2_vol
+        0, // osc2_waveform
+        0, // noise_fader
+        789, // env_attack
+        0, // env_sustain
+        20000, // env_release
+        255, // env_master
+        3, // fx_filter
+        2394, // fx_freq
+        35, // fx_resonance
+        0, // fx_delay_time
+        0, // fx_delay_amt
+        0, // fx_pan_freq
+        0, // fx_pan_amt
+        1, // lfo_osc1_freq
+        1, // lfo_fx_freq
+        1, // lfo_freq
+        36, // lfo_amt
+        3, // lfo_waveform
+    ];
+
+    gun = [
+        7, // osc1_oct
+        3, // osc1_det
+        0, // osc1_detune
+        1, // osc1_xenv
+        255, // osc1_vol
+        1, // osc1_waveform
+        6, // osc2_oct
+        0, // osc2_det
+        0, // osc2_detune
+        1, // osc2_xenv
+        255, // osc2_vol
+        1, // osc2_waveform
+        112, // noise_fader
+        548, // env_attack
+        1979, // env_sustain
+        11601, // env_release
+        255, // env_master
+        2, // fx_filter
+        2902, // fx_freq
+        176, // fx_resonance
+        2, // fx_delay_time
+        77, // fx_delay_amt
+        0, // fx_pan_freq
+        0, // fx_pan_amt
+        1, // lfo_osc1_freq
+        0, // lfo_fx_freq
+        10, // lfo_freq
+        255, // lfo_amt
+        1, // lfo_waveform
+    ];
 }

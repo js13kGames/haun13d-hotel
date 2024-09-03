@@ -92,6 +92,8 @@ export class TinyWebXR {
     program!: WebGLProgram;
 
     callback: ((dt: number) => void) | undefined;
+    sessionRequested: () => void = () => {};
+
     /**
      * Creates a new instance of TinyWebXR.
      */
@@ -143,6 +145,7 @@ export class TinyWebXR {
      * will request an exclusive session from that device.
      */
     onRequestSession() {
+        this.sessionRequested();
         return navigator.xr!.requestSession('immersive-vr').then(this.onSessionStarted.bind(this));
     }
 
