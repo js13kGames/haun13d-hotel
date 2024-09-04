@@ -1,6 +1,7 @@
 // build.js
 const esbuild = require('esbuild');
 const { webglPlugin } = require('esbuild-plugin-webgl');
+const copyStaticFiles = require('esbuild-copy-static-files');
 
 async function serve() {
     let ctx = await esbuild.context({
@@ -11,7 +12,12 @@ async function serve() {
         target: 'ES2022',
         format: 'esm',
         outfile: './dist/index.js',
-        plugins: [webglPlugin()],
+        plugins: [webglPlugin(),
+        copyStaticFiles({
+            src: './static', // Source directory
+            dest: './dist', // Destination directory
+        })
+        ],
         loader: {
             '.vs': 'text',
             '.fs': 'text',

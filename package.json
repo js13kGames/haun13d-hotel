@@ -6,8 +6,8 @@
     "scripts": {
         "copyHtml": "copyfiles -a -u 1 ./static/**/* ./dist",
         "build-old": "esbuild ./src/index.ts --bundle --minify --drop:console --target=ES2022 --format=esm --outfile=./dist/index.js && npm run copyHtml",
-        "build": "node ./tools/build.js  && npm run copyHtml",
-        "build:prod": "node ./tools/build-prod.js  && npm run copyHtml",
+        "build": "node ./tools/build.js",
+        "build:prod": "node ./tools/build-prod.js",
         "build:watch": "esbuild ./src/index.ts --bundle --minify --sourcemap --watch --target=ES2022 --format=esm --outfile=./dist/index.js --servedir=dist ",
         "build:meta": "esbuild ./src/index.ts --bundle --minify --drop:console --target=ES2022 --format=esm --outfile=./dist/index.js --metafile=meta.json && npm run copyHtml",
         "test": "echo \"Error: no test specified\" && exit 1",
@@ -24,11 +24,17 @@
         "rollup-plugin-esbuild": "^6.1.1"
     },
     "devDependencies": {
+        "@types/babylonjs": "^2.4.1",
         "@types/webxr": "^0.5.19",
         "@typescript-eslint/eslint-plugin": "^8.1.0",
         "@typescript-eslint/parser": "^8.1.0",
+        "babylonjs": "^7.23.0",
         "copyfiles": "^2.4.1",
+        "esbuild-copy-static-files": "^0.1.0",
+        "esbuild-plugin-ifdef": "^1.0.1",
+        "esbuild-plugin-replace": "^1.4.0",
         "eslint": "^9.9.0",
+        "terser": "^5.31.6",
         "ts-node": "^10.9.2",
         "typedoc": "^0.26.5",
         "typescript": "^5.5.4"
