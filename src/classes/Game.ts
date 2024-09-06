@@ -16,7 +16,7 @@ export class Game {
         this.engine = new BABYLON.Engine(canvas, true);
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = new BABYLON.Color4();
-
+        this.scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
         this.textures = new Textures(this.scene);
         //#ifdef DEBUG
         // hide/show the Inspector
@@ -38,7 +38,9 @@ export class Game {
         // enable controls for debugging
         camera.inputs.addKeyboard();
         camera.attachControl(canvas, true);
-        new BABYLON.HemisphericLight('debug light', new BABYLON.Vector3(7.5, 2.5, 7.5), this.scene);
+        camera.applyGravity = true;
+        camera.checkCollisions = true;
+        //new BABYLON.HemisphericLight('debug light', new BABYLON.Vector3(7.5, 2.5, 7.5), this.scene);
         //#endif
 
         // for (let i = 0; i < 3; i++) {
@@ -73,9 +75,13 @@ export class Game {
             .then((xrHelper) => {
                 const xrRoot = new BABYLON.TransformNode('xrRoot', this.scene);
                 xrHelper.baseExperience.camera.parent = xrRoot;
+                xrHelper.baseExperience.camera.applyGravity = true;
                 let l = new BABYLON.PointLight('userlight', new BABYLON.Vector3(0, 0, 0), this.scene);
                 l.range = 15;
+                l.specular = new BABYLON.Color3(0.2, 0.2, 0);
+                l.falloffType = BABYLON.Light.FALLOFF_PHYSICAL;
                 l.parent = xrHelper.baseExperience.camera;
+
                 // xrHelper.baseExperience.featuresManager.enableFeature(
                 //     BABYLON.WebXRFeatureName.WALKING_LOCOMOTION,
                 //     'latest',

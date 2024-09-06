@@ -1,6 +1,6 @@
 # Blender 4.2.1 LTS
 # www.blender.org
-mtllib block1.mtl
+mtllib block1.mtl.mtl
 o Cube
 v -1.500000 -1.500000 1.500000
 v -1.500000 1.500000 1.500000
