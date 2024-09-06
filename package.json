@@ -13,11 +13,14 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "doc": "typedoc --out docs --entryPointStrategy Expand ./src --watch",
         "doc:run": "http-server docs -o -c-1 -p 7777",
-        "start": "http-server ./dist -o -c-1 -p 1337"
+        "start": "http-server ./dist -o -c-1 -p 1337",
+        "convert": "node .\\tools\\obj-convert.js .\\art\\test.obj"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@babylonjs/core": "^7.24.0",
+        "@babylonjs/loaders": "^7.24.0",
         "esbuild": "^0.23.0",
         "esbuild-plugin-webgl": "^0.0.3",
         "rollup": "^4.20.0",

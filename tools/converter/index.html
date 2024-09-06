@@ -1,0 +1,36 @@
+<html>
+
+<head>
+    <title>Converter</title>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+</head>
+
+<body>
+    <canvas id="renderCanvas" style="display: none;"></canvas>
+    <div>
+        <textarea width="100%" height="100%" style="width:100%;height: 100%;" id="output"></textarea>
+    </div>
+    <script>
+        const engine = new BABYLON.Engine(document.getElementById('renderCanvas'), true);
+        var scene = new BABYLON.Scene(engine);
+        BABYLON.SceneLoader.ImportMesh("", "/", "block1.obj", scene, function (meshes) {
+            const mesh = meshes[0];
+            var positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+            var normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+            var colors = mesh.getVerticesData(BABYLON.VertexBuffer.ColorKind);
+            var uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind);
+
+            var indices = mesh.getIndices();
+
+            console.log(uvs)
+            document.getElementById('output').value = JSON.stringify({
+                positions: positions,
+                uvs: uvs,
+                indices: indices
+            });
+        });
+    </script>
+</body>
+
+</html>
