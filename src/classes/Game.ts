@@ -47,23 +47,14 @@ export class Game {
         //#ifdef DEBUG
         // enable controls for debugging
         camera.inputs.addKeyboard();
-        camera.attachControl(canvas, true);
+        const im = camera.attachControl(canvas, true);
         camera.applyGravity = true;
         camera.checkCollisions = true;
         new BABYLON.HemisphericLight('debug light', new BABYLON.Vector3(7.5, 2.5, 7.5), this.scene);
         //#endif
 
-        // for (let i = 0; i < 3; i++) {
-        //     let l = new BABYLON.PointLight(
-        //         'light',
-        //         new BABYLON.Vector3(~~(Math.random() * 13) * SCALE, 2.5, ~~(Math.random() * 13) * SCALE),
-        //         this.scene
-        //     );
-        //     l.range = 15;
-        //     //l.shadowEnabled = true;
-        // }
-
         const hotelFloor = new HotelFloor(this, this.scene, {width: 13, height: 13});
+
         this.engine.runRenderLoop(() => {
             let dt = this.engine.getDeltaTime();
             this._secs.match(ControllerInput).map((e) => this._inputS.controllers(e, dt));
@@ -99,6 +90,7 @@ export class Game {
                 const xrRoot = new BABYLON.TransformNode('xrRoot', this.scene);
                 xrHelper.baseExperience.camera.parent = xrRoot;
                 xrHelper.baseExperience.camera.applyGravity = true;
+                xrHelper.baseExperience.camera.checkCollisions = true;
                 // let l = new BABYLON.PointLight('userlight', new BABYLON.Vector3(0, 0, 0), this.scene);
                 // l.range = 15;
                 // l.specular = new BABYLON.Color3(0.2, 0.2, 0);
