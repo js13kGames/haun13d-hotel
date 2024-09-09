@@ -2,23 +2,30 @@
 
 Must have:
 
-    TinyWebXR:
-        ✔ Controller support @done(24-08-27 21:58)
-        ✔ Trigger support @done(24-09-03 20:52)
+    ~TinyWebXR:~
+        ~✔ Controller support @done(24-08-27 21:58)~
+        ~✔ Trigger support @done(24-09-03 20:52)~
+
+    SECS:
+        ✔ Implement basics @done(24-09-07 21:23)
 
     Game:
         Ghosts:
-            ☐ Spawn
+            ☐ @today Spawn
             ☐ Move
             ✔ Kill @done(24-09-03 20:52)
-        ☐ Hotel Floor Model
+        ✔ Hotel Floor Model @done(24-09-07 21:40)
+        Game States:
+            ☐ Pregame
+            ☐ Playing
+            ☐ GameOver
 
 Should have:
     ✔ Better lighting, more sources and omni lights @done(24-09-03 20:52)
-    ☐ Batching of models per material.
+    ✔ Batching of models per material. @done(24-09-07 21:22)
 
 Could have:
-    ☐ A flashlight
+    ✔ A flashlight @done(24-09-07 21:22)
 
 Would Like:
 

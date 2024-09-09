@@ -1,4 +1,6 @@
 import ttt from '../lib/ttt';
+const _GhostTexture =
+    'data:image/webp;base64,UklGRk4EAABXRUJQVlA4WAoAAAAQAAAAjwAALwAAQUxQSIMAAAABDzD/ERHCdSS7bYPSFRpDJ0YBDvhU4OA5ACAoNxDR/wkgXwGAslNKHUk1R1MItmjytgwXyJ/oJTavjWlXsgL0TQVcIAV6ia2gpbYCdSwlDkDawQBJAUf8Y10TANCUYodS2jOBtoK7ZxnuoSHIiGcjLGojWrQVKG7eFjFWTyMiMkdSIQBWUDggpAMAAPASAJ0BKpAAMAA+kTyXSCWjIiEuNA1QsBIJZwDLYKpKab+pw38j4S1onWu32XVps2gd4An51b74yyfe9OcUHP63EesQcieVtZkk1V8ov2qK2tv7/yLs1aYFgDkGJAjLERjp6nQx1hluIauL6IL3agfn3+fDBpT6KrXg/Tc/Sh5TPvgUdcZYnxC843Hgsq3nO/VDwPi+NEzV6EDLxOaniRAA/vytETeuMat0p+FG9jOfb012ltscBtuZeZBi+eKexbiJhZ9mdMvjAh99O5rLXEz8mm1jRoNZfr/qKPXWUY/NFD8RNe00t3dfASmJRSk+JNxrHS9IL4W2aNpKytmRvkX4i5hixTp1pAE4h+gtOgDuppTVJIiH6zb5jURJg98mW31IUtI+4axx414KTP0N8dKBcfN82huUPmVAFSMdT6OhfuDuVSoUn/1QnfKjcDD0leFcp0d6C24//0nehz3P0/miKTPkfxEj21JvwdFzIddydFsudGM3TD9Vny2Bdz7NM6nxBRxeKqn9ZFPt3L+6cOpIFqLEoINIA1f7gPdE/+OyfHMhj0zt3neMDqDd0R1vjf5IbgExbVyXepiyBRbgPzLbmUHiaesoyD0Q7WCrQweAVfcrzrwWMv5kYmHAWfm7YvGgNISAO6BHa8ggHH7OyKhHCGukAJULBf0uMLb2Zb8uEu6Ff4xrqBudAQ39kp/XgxasZGOe/EXO8hwa+5UZ0uY9BMTsNeM9MKLdc291Yg/uISstpWCwEXhMaxEdQGwtlW0jYBozM29+iwhnyXo/xrbZFf94eFoELfCokDG6hzmzmjiqgygjm/0QnnaesTiutlwFFNwxbNF0eosLDxCJkUroyppwzkcUb9aWYCAQET7P32pglujDrnyD3VXqEzJtwSMv1Hu7WMlX46a2UpVjzkJlNxhBg0GFiDsQvBJCBT/2BHSqU/+BApyp7rxM5eLKV0CxAweQI49wXxkRjbSuSFgK2z6khFvud1Yifr70xe8KguUMsrfBLd88Je+1owCjJI/njcORwG5tXuAzD1A3zXLb0j9lMGopXhzpFT7eN8clGc6qREUsn8u5a3fVQL9um06p0FHLA1zUjLUwdcJMRTdA7+MK7rN2FQ+Nqne3K6hvsFjTqD1ZsIBs7HwvTWS2B4iAtJNCjA2ZhBJnrgZiGgnqaCh16Mc7GbYldOLXzEtQaypMXKyGt0wlhb/sdHYoJ6mJU+o1pChdnORdaDOZIivflAAA';
 
 export class Textures {
     public t: BABYLON.Texture[] = [];
@@ -12,15 +14,7 @@ export class Textures {
             //[[128,128,0,2,3,1.4,2,17480,1.3],[128,128,61087,2,30580,1,4,0,0,0,512,1280,6],[128,128,8751,1,1,1,30,62,64,64,65528,8,29444,1,33,-30,31,62,64,64,65528,8,29443,4,0,0,0,128,1280,15]]
         ).map((x: HTMLCanvasElement, i: number) => {
             this.t.push(
-                BABYLON.Texture.LoadFromDataString(
-                    't' + i,
-                    x.toDataURL(),
-                    s,
-                    false,
-                    false,
-                    false,
-                    BABYLON.Texture.NEAREST_SAMPLINGMODE
-                )
+                BABYLON.Texture.LoadFromDataString('t' + i, x.toDataURL(), s, false, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE)
             );
             //#ifdef DEBUG
             document.body.appendChild(x);
@@ -52,6 +46,10 @@ export class Textures {
                 true, // invertY
                 BABYLON.Texture.NEAREST_SAMPLINGMODE
             )
+        );
+
+        this.t.push(
+            BABYLON.Texture.LoadFromDataString('ghost', _GhostTexture, s, false, false, true, BABYLON.Texture.NEAREST_SAMPLINGMODE)
         );
     }
 }

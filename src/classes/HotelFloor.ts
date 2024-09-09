@@ -6,20 +6,28 @@ const cube = {
 };
 
 const _GRID_WALL = 'wall';
+const _GRID_START = 'start';
+const _GRID_END = 'end';
+const _GRID_CORRIDOR = 'corridor';
 
 export class HotelFloor {
+    /**
+     * The grid of the maze
+     */
+    public g: string[][];
+
     private _scene: BABYLON.Scene;
-    private _grid: string[][];
     private _params: {width: number; height: number};
     private _game: Game;
     private _baseCube!: BABYLON.Mesh;
+    private _floorRoot: BABYLON.TransformNode;
 
     constructor(game: Game, scene: BABYLON.Scene, params: {width: number; height: number}) {
         this._scene = scene;
         this._params = params;
         this._game = game;
-        this._grid = this._createGrid(params.width, params.height);
-
+        this.g = this._createGrid(params.width, params.height);
+        this._floorRoot = new BABYLON.TransformNode('floorRoot', this._scene);
         this._createBaseMeshes();
         this._generateMaze();
         this._createMeshesFromGrid();
@@ -29,20 +37,34 @@ export class HotelFloor {
         // #endif
     }
 
+    /**
+     * Check if a position is valid
+     */
+    public _validPosition(x: number, y: number): boolean {
+        const p = this.g[x][y];
+
+        if (p === _GRID_WALL || p === _GRID_START || p === _GRID_END) {
+            return false;
+        }
+        // Maybe check for distance of start and if there are any ghosts in the way
+
+        return true;
+    }
+
     // #ifdef DEBUG
     private _gridDebugger() {
         // create a string from the current grid
         let gridString = '';
-        for (let x = 0; x < this._grid.length; x++) {
-            for (let y = 0; y < this._grid[x].length; y++) {
-                switch (this._grid[x][y]) {
-                    case 'corridor':
+        for (let x = 0; x < this.g.length; x++) {
+            for (let y = 0; y < this.g[x].length; y++) {
+                switch (this.g[x][y]) {
+                    case _GRID_CORRIDOR:
                         gridString += '███';
                         break;
-                    case 'start':
+                    case _GRID_START:
                         gridString += '█S█';
                         break;
-                    case 'end':
+                    case _GRID_END:
                         gridString += '█E█';
                         break;
                     default:
@@ -55,37 +77,17 @@ export class HotelFloor {
         console.log(gridString);
     }
     // #endif
-    private _getTextureCoordinates(row, col) {
-        const _atlasSize = 4; // 4 by 4 grid
-        const _cellSize = 1 / _atlasSize; // Each cell's width and height in UV coordinates
-
-        const u1 = col * _cellSize;
-        const v1 = row * _cellSize;
-        const u2 = u1 + _cellSize;
-        const v2 = v1 + _cellSize;
-
-        return new BABYLON.Vector4(u1, v1, u2, v2);
-    }
 
     private _createBaseMeshes() {
-        // // Create a base cube to clone for walls
-        // const faceUV = new Array(6);
-        // for (let i = 0; i < 6; i++) {
-        //     faceUV[i] = new BABYLON.Vector4(0.0, 0.75, 0.25, 1);
-        // }
-        // faceUV[1] = new BABYLON.Vector4(0.0, 0.5, 0.25, 0.75);
-        // faceUV[4] = this._getTextureCoordinates(3, 2); // floor
-        // faceUV[5] = new BABYLON.Vector4(0.0, 0.0, 0.0, 0.0); // ceiling
         this._baseCube = new BABYLON.Mesh('custom', this._scene);
 
         var vertexData = new BABYLON.VertexData();
 
         vertexData.positions = cube.atlas.positions;
         vertexData.indices = cube.atlas.indices;
-        //vertexData.uvs = cube.atlas.uvs;
         vertexData.uvs = cube.atlas.uvs;
         vertexData.applyToMesh(this._baseCube);
-        //this._baseCube = BABYLON.MeshBuilder.CreateBox('myCube', {size: 3, faceUV: faceUV}, this._scene);
+
         var cubeMat = new BABYLON.StandardMaterial('cubeMat', this._scene);
         this._baseCube.position.y = -500;
         cubeMat.diffuseTexture = this._game.textures.t[0];
@@ -113,8 +115,8 @@ export class HotelFloor {
         this._carvePassagesFrom(0, 0);
 
         // Place start and end points
-        this._grid[0][0] = 'start';
-        this._grid[width - 1][height - 1] = 'end';
+        this.g[0][0] = 'start';
+        this.g[width - 1][height - 1] = 'end';
     }
 
     private _carvePassagesFrom(cx: number, cy: number) {
@@ -132,9 +134,9 @@ export class HotelFloor {
             const nx = cx + direction[0] * 2;
             const ny = cy + direction[1] * 2;
 
-            if (this._isInBounds(nx, ny) && this._grid[nx][ny] === _GRID_WALL) {
-                this._grid[nx][ny] = 'corridor';
-                this._grid[cx + direction[0]][cy + direction[1]] = 'corridor';
+            if (this._isInBounds(nx, ny) && this.g[nx][ny] === _GRID_WALL) {
+                this.g[nx][ny] = _GRID_CORRIDOR;
+                this.g[cx + direction[0]][cy + direction[1]] = _GRID_CORRIDOR;
                 this._carvePassagesFrom(nx, ny);
             }
         }
@@ -154,18 +156,12 @@ export class HotelFloor {
 
     // Convert the grid into BabylonJS meshes
     private _createMeshesFromGrid() {
-        for (let x = 0; x < this._grid.length; x++) {
-            for (let y = 0; y < this._grid[x].length; y++) {
-                if (this._grid[x][y] === 'corridor' || this._grid[x][y] === 'start' || this._grid[x][y] === 'end') {
+        for (let x = 0; x < this.g.length; x++) {
+            for (let y = 0; y < this.g[x].length; y++) {
+                if (this.g[x][y] === _GRID_CORRIDOR || this.g[x][y] === _GRID_START || this.g[x][y] === _GRID_END) {
                     this._createCorridor(x * SCALE, y * SCALE);
                 }
-                if (this._grid[x][y] === 'start') {
-                    this._createStart(x * SCALE, y * SCALE);
-                }
-                if (this._grid[x][y] === 'end') {
-                    this._createEnd(x * SCALE, y * SCALE);
-                }
-                if (this._grid[x][y] === 'wall') {
+                if (this.g[x][y] === _GRID_WALL) {
                     this._createWallInstance(x * SCALE, y * SCALE);
                 }
             }
@@ -181,47 +177,21 @@ export class HotelFloor {
         }
     }
     private _createWallInstance(x: number, y: number) {
-        let c = this._baseCube.createInstance(`wall-${x}-${y}`);
+        const c = this._baseCube.createInstance(`wall-${x}-${y}`);
         c.checkCollisions = true;
         c.position.set(x, 1.5, y);
         c.rotate(BABYLON.Axis.Y, Math.PI * ~~(Math.random() * 4));
+        c.parent = this._floorRoot;
     }
 
     private _createCorridor(x: number, y: number) {
         let c = this._baseCube.createInstance(`floor-${x}-${y}`);
         c.checkCollisions = true;
         c.position.set(x, -1.5, y);
+        c.parent = this._floorRoot;
+
         c = this._baseCube.createInstance(`ceiling-${x}-${y}`);
         c.position.set(x, 4.5, y);
-        // const corridor = BABYLON.MeshBuilder.CreateBox(
-        //     `corridor-${x}-${y}`,
-        //     {height: 0.1, width: SCALE, depth: SCALE},
-        //     this._scene
-        // );
-        // corridor.position = new BABYLON.Vector3(x, -0.05, y);
-        // corridor.material = new BABYLON.StandardMaterial(`corridorMat-${x}-${y}`, this._scene);
-        // (corridor.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
-    }
-
-    private _createStart(x: number, y: number) {
-        const start = BABYLON.MeshBuilder.CreateBox(
-            `start-${x}-${y}`,
-            {height: 0.1, width: SCALE, depth: SCALE},
-            this._scene
-        );
-        start.position = new BABYLON.Vector3(x, -0.05, y);
-        start.material = new BABYLON.StandardMaterial(`startMat-${x}-${y}`, this._scene);
-        (start.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(0, 1, 0);
-    }
-
-    private _createEnd(x: number, y: number) {
-        const end = BABYLON.MeshBuilder.CreateBox(
-            `end-${x}-${y}`,
-            {height: 0.1, width: SCALE, depth: SCALE},
-            this._scene
-        );
-        end.position = new BABYLON.Vector3(x, -0.05, y);
-        end.material = new BABYLON.StandardMaterial(`endMat-${x}-${y}`, this._scene);
-        (end.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(1, 0, 0);
+        c.parent = this._floorRoot;
     }
 }

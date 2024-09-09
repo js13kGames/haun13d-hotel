@@ -9,7 +9,7 @@ export class Entity {
      * @param {number} id the unique id of the entity
      * @param {Secs} secs the instance of secs
      */
-    constructor(id, secs) {
+    constructor(id: number, secs: Secs) {
         this.id = id;
         this.secs = secs;
     }

@@ -1,10 +1,10 @@
-import {IComponent} from './components/IComponent';
+import {Component} from './components/Component';
 import {Entity} from './Entity';
 
 export class Secs {
     nextID = 0;
     entities: Entity[] = [];
-    entitiesToComponents: IComponent[] = [];
+    entitiesToComponents: Component[] = [];
     componentsToEntities = {};
     system = {};
 
@@ -23,7 +23,7 @@ export class Secs {
         var entity = new Entity(entityID, this);
 
         this.entities[entityID] = entity;
-        this.entitiesToComponents[entityID] = {};
+        this.entitiesToComponents[entityID] = {} as Component;
 
         if (components) {
             components.forEach((component) => {
