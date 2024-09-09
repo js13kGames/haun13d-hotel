@@ -12,7 +12,7 @@ export class InputSystem {
         if (this.xrControllers) {
             this.xrControllers.forEach((controller) => {
                 this.handleController(entity, controller);
-                this.trackDirection(entity, controller, dt);
+                // this.trackDirection(entity, controller, dt);
             });
         }
     }
@@ -42,35 +42,36 @@ export class InputSystem {
             //         }
             //     }
             // }
-            if (controller.inputSource.gamepad!.buttons[0].value == 1 && !this.triggerPressed) {
+            if (controller.inputSource.gamepad!.buttons[0].value == 1) {
+                inputEntity.triggerPressed = true;
                 this.triggerPressed = true;
                 // window.app.gotTrigger();
-            } else {
-                if (controller.inputSource.gamepad!.buttons[0].value < 0.5 && this.triggerPressed) {
-                    this.triggerPressed = false;
-                }
+            }
+            if (controller.inputSource.gamepad!.buttons[0].value < 0.5) {
+                inputEntity.triggerPressed = false;
+                this.triggerPressed = false;
             }
         }
     }
 
-    trackDirection(entity, controller, deltaTime) {
-        var inputEntity = entity.get(ControllerInput);
-        if (controller.inputSource.handedness == inputEntity.handedness) {
-            if (this.lastPosition[inputEntity.handedness]) {
-                //distance since last frame
-                var distance = BABYLON.Vector3.Distance(this.lastPosition[inputEntity.handedness], controller.grip.position);
+    // trackDirection(entity, controller, deltaTime) {
+    //     var inputEntity = entity.get(ControllerInput);
+    //     if (controller.inputSource.handedness == inputEntity.handedness) {
+    //         if (this.lastPosition[inputEntity.handedness]) {
+    //             //distance since last frame
+    //             var distance = BABYLON.Vector3.Distance(this.lastPosition[inputEntity.handedness], controller.grip.position);
 
-                //direction since last frame
-                var direction = controller.grip.position.subtract(this.lastPosition[inputEntity.handedness]).normalize();
-                var speed = distance / deltaTime;
-                this.data[inputEntity.handedness] = {
-                    speed: speed,
-                    direction: direction,
-                };
-                this.lastPosition[inputEntity.handedness].copyFrom(controller.grip.position);
-            } else {
-                this.lastPosition[inputEntity.handedness] = new BABYLON.Vector3(0, 0, 0);
-            }
-        }
-    }
+    //             //direction since last frame
+    //             var direction = controller.grip.position.subtract(this.lastPosition[inputEntity.handedness]).normalize();
+    //             var speed = distance / deltaTime;
+    //             this.data[inputEntity.handedness] = {
+    //                 speed: speed,
+    //                 direction: direction,
+    //             };
+    //             this.lastPosition[inputEntity.handedness].copyFrom(controller.grip.position);
+    //         } else {
+    //             this.lastPosition[inputEntity.handedness] = new BABYLON.Vector3(0, 0, 0);
+    //         }
+    //     }
+    // }
 }

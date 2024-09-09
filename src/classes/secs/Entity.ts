@@ -1,3 +1,4 @@
+import {Component} from './components/Component';
 import {Secs} from './secs';
 
 export class Entity {

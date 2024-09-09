@@ -3,6 +3,7 @@ import {_GunMeshData} from './Gun';
 import {HotelFloor} from './HotelFloor';
 import {ControllerInput, handedness} from './secs/components/ControllerInput';
 import {GhostEntity} from './secs/components/GhostEntity';
+import {Gun} from './secs/components/Gun';
 import {MeshEntity} from './secs/components/MeshEntity';
 import {Secs} from './secs/secs';
 import {InputSystem} from './secs/systems/InputSystem';
@@ -34,6 +35,7 @@ export class Game {
     private _secs: Secs = new Secs();
     private _hotelFloor!: HotelFloor;
     private _state: GameState = GameState.LOADING;
+    private _ghosts: BABYLON.AbstractMesh[] = [];
 
     constructor() {
         this._initialize().then(() => {
@@ -56,6 +58,7 @@ export class Game {
         let _dt = this.engine.getDeltaTime();
         this._secs.match(ControllerInput).map((e) => this._inputS.controllers(e, _dt));
         this._secs.match(GhostEntity).map((e) => e.get(GhostEntity).update(_dt, e));
+        this._secs.match(Gun).map((e) => e.get(Gun).update(_dt, e));
         switch (this._state) {
             case GameState.LOADING:
                 break;
@@ -156,7 +159,8 @@ export class Game {
         material.specularColor = new BABYLON.Color3(0, 0, 0);
         //material.disableLighting = true;
         gun.material = material;
-        this._secs.createEntity([new ControllerInput(handedness.RIGHT), new MeshEntity(gun)]);
+
+        this._secs.createEntity([new ControllerInput(handedness.RIGHT), new MeshEntity(gun), new Gun(this._shoot)]);
         // xrHelper.baseExperience.featuresManager.enableFeature(
         //     BABYLON.WebXRFeatureName.WALKING_LOCOMOTION,
         //     'latest',
@@ -194,6 +198,29 @@ export class Game {
             }
         });
     }
+    private _shoot = (position: BABYLON.Vector3, forward: BABYLON.Vector3) => {
+        //console.log('Pew pew');
+        const ray = new BABYLON.Ray(position, forward, 25);
+
+        ray.intersectsMeshes(this._ghosts, false).forEach((g) => {
+            ray.intersectsMeshes(this._hotelFloor.w, false).forEach((w) => {
+                if (w.distance < g.distance) {
+                    // hit wall and not a ghost
+                    return;
+                } else {
+                    // hit ghost
+                    console.log('Hit ghost');
+                    g.pickedMesh!.dispose();
+                    this._secs.match(GhostEntity).forEach((e) => {
+                        if (e.get(MeshEntity).mesh === g.pickedMesh) {
+                            //e.kill();
+                            console.log('Killed ghost');
+                        }
+                    });
+                }
+            });
+        });
+    };
 
     private _spawnGhosts() {
         const basemesh = new BABYLON.Mesh('ghost', this.scene);
@@ -229,8 +256,9 @@ export class Game {
             ghost.position.z = y * SCALE;
             ghost.position.y = 1.5;
             ghost.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
-
+            ghost.isPickable = true;
             this._secs.createEntity([new GhostEntity(), new MeshEntity(ghost)]);
+            this._ghosts.push(ghost);
         }
     }
 }

@@ -7,6 +7,8 @@ export enum handedness {
 
 export class ControllerInput extends Component {
     handedness: handedness;
+    triggerPressed: boolean = false;
+
     constructor(handedness: handedness) {
         super();
         this.handedness = handedness;

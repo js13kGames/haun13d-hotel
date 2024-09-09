@@ -16,6 +16,10 @@ export class HotelFloor {
      */
     public g: string[][];
 
+    /**
+     * The walls of the maze
+     */
+    public w: BABYLON.AbstractMesh[] = [];
     private _scene: BABYLON.Scene;
     private _params: {width: number; height: number};
     private _game: Game;
@@ -115,8 +119,8 @@ export class HotelFloor {
         this._carvePassagesFrom(0, 0);
 
         // Place start and end points
-        this.g[0][0] = 'start';
-        this.g[width - 1][height - 1] = 'end';
+        this.g[0][0] = _GRID_START;
+        this.g[width - 1][height - 1] = _GRID_END;
     }
 
     private _carvePassagesFrom(cx: number, cy: number) {
@@ -162,7 +166,7 @@ export class HotelFloor {
                     this._createCorridor(x * SCALE, y * SCALE);
                 }
                 if (this.g[x][y] === _GRID_WALL) {
-                    this._createWallInstance(x * SCALE, y * SCALE);
+                    this.w.push(this._createWallInstance(x * SCALE, y * SCALE));
                 }
             }
         }
@@ -176,12 +180,13 @@ export class HotelFloor {
             this._createWallInstance(SCALE * this._params.width, x * SCALE);
         }
     }
-    private _createWallInstance(x: number, y: number) {
+    private _createWallInstance(x: number, y: number): BABYLON.AbstractMesh {
         const c = this._baseCube.createInstance(`wall-${x}-${y}`);
         c.checkCollisions = true;
         c.position.set(x, 1.5, y);
         c.rotate(BABYLON.Axis.Y, Math.PI * ~~(Math.random() * 4));
         c.parent = this._floorRoot;
+        return c;
     }
 
     private _createCorridor(x: number, y: number) {
