@@ -27,7 +27,7 @@ export class InputSystem {
             var mesh = entity.get(MeshEntity).mesh;
             mesh.position.copyFrom(controller.grip!.position);
             mesh.rotationQuaternion = controller.grip!.rotationQuaternion;
-            mesh.rotate(BABYLON.Vector3.Right(), Math.PI / 2);
+            mesh.rotate(BABYLON.Vector3.Right(), Math.PI / 4);
             // var colCheck = entity.get(CollisionCheck);
             // if (colCheck) {
             //     if (colCheck.check(this.data[inputEntity.handedness])) {
@@ -58,15 +58,10 @@ export class InputSystem {
         if (controller.inputSource.handedness == inputEntity.handedness) {
             if (this.lastPosition[inputEntity.handedness]) {
                 //distance since last frame
-                var distance = BABYLON.Vector3.Distance(
-                    this.lastPosition[inputEntity.handedness],
-                    controller.grip.position
-                );
+                var distance = BABYLON.Vector3.Distance(this.lastPosition[inputEntity.handedness], controller.grip.position);
 
                 //direction since last frame
-                var direction = controller.grip.position
-                    .subtract(this.lastPosition[inputEntity.handedness])
-                    .normalize();
+                var direction = controller.grip.position.subtract(this.lastPosition[inputEntity.handedness]).normalize();
                 var speed = distance / deltaTime;
                 this.data[inputEntity.handedness] = {
                     speed: speed,

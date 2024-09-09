@@ -15,6 +15,7 @@
             justify-content: center;
             margin: 20px;
         }
+
         #output-image {
             width: 90%;
             height: 100px;
@@ -32,21 +33,26 @@
     <div id="dropArea">Drop your image here</div>
     <textarea id="output-image"></textarea>
 
-    <hr/>
+    <hr />
     <h2>model data</h2>
     <canvas id="renderCanvas" style="display: none;"></canvas>
     <div>
         <textarea width="100%" height="100%" style="width:100%;height: 100%;" id="output"></textarea>
     </div>
     <script>
+        function r(num) {
+            return Math.floor(num * 100) / 100;
+        }
+
+
         const engine = new BABYLON.Engine(document.getElementById('renderCanvas'), true);
         var scene = new BABYLON.Scene(engine);
-        BABYLON.SceneLoader.ImportMesh("", "/", "Ghost.obj", scene, function (meshes) {
+        BABYLON.SceneLoader.ImportMesh("", "/", "Gun2.obj", scene, function (meshes) {
             const mesh = meshes[0];
-            var positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+            var positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind).map(v=>r(v));
             var normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
             var colors = mesh.getVerticesData(BABYLON.VertexBuffer.ColorKind);
-            var uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind);
+            var uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind).map(v=>r(v));
 
             var indices = mesh.getIndices();
 
@@ -76,7 +82,7 @@
                 const file = files[0];
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
-                    reader.onloadend = function() {
+                    reader.onloadend = function () {
                         document.getElementById('output-image').value = reader.result;
                     };
                     reader.readAsDataURL(file);

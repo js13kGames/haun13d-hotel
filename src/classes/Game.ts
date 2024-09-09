@@ -1,4 +1,5 @@
 import {_GhostMeshData} from './Ghost';
+import {_GunMeshData} from './Gun';
 import {HotelFloor} from './HotelFloor';
 import {ControllerInput, handedness} from './secs/components/ControllerInput';
 import {GhostEntity} from './secs/components/GhostEntity';
@@ -31,23 +32,24 @@ export class Game {
 
     private _inputS = new InputSystem();
     private _secs: Secs = new Secs();
-    private _hotelFloor: HotelFloor;
+    private _hotelFloor!: HotelFloor;
     private _state: GameState = GameState.LOADING;
 
     constructor() {
-        this._initialize();
-        this._hotelFloor = new HotelFloor(this, this.scene, {width: _LEVELWIDTH, height: _LEVELHEIGHT});
+        this._initialize().then(() => {
+            this._hotelFloor = new HotelFloor(this, this.scene, {width: _LEVELWIDTH, height: _LEVELHEIGHT});
 
-        this.engine.runRenderLoop(this._render);
+            this.engine.runRenderLoop(this._render);
 
-        window.addEventListener('resize', () => {
-            this.engine.resize();
+            window.addEventListener('resize', () => {
+                this.engine.resize();
+            });
+
+            this._initializeXR().catch((e) => console.error(e));
+
+            this._spawnGhosts();
+            console.log('Game initialized');
         });
-
-        this._initializeXR().catch((e) => console.error(e));
-
-        this._spawnGhosts();
-        console.log('Game initialized');
     }
 
     private _render = () => {
@@ -69,7 +71,7 @@ export class Game {
         this.scene.render();
     };
 
-    private _initialize() {
+    private async _initialize() {
         const canvas = document.getElementById('c') as HTMLCanvasElement;
         this.engine = new BABYLON.Engine(canvas, true);
         this.scene = new BABYLON.Scene(this.engine);
@@ -78,7 +80,9 @@ export class Game {
 
         this.scene.clearColor = new BABYLON.Color4();
         this.scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-        this.textures = new Textures(this.scene);
+
+        this.textures = new Textures();
+        await this.textures.load(this.scene);
 
         //#ifdef DEBUG
         // hide/show the Inspector
@@ -127,8 +131,8 @@ export class Game {
         // l.falloffType = BABYLON.Light.FALLOFF_PHYSICAL;
         // l.parent = xrHelper.baseExperience.camera;
 
-        const flM = BABYLON.CreateCylinder('fl', {height: 0.15, diameterTop: 0.03, diameterBottom: 0.02});
-        const fl = new BABYLON.SpotLight('fl', new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 1, 0), Math.PI / 2, 10, this.scene);
+        const flM = BABYLON.CreateCylinder('fl', {height: 0.15, diameterTop: 0.02, diameterBottom: 0.03});
+        const fl = new BABYLON.SpotLight('fl', new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, -1, 0), Math.PI / 2, 10, this.scene);
         fl.diffuse = new BABYLON.Color3(1, 1, 1);
         fl.specular = new BABYLON.Color3(1, 1, 1);
         fl.range = 25;
@@ -137,6 +141,22 @@ export class Game {
 
         this._secs.createEntity([new ControllerInput(handedness.LEFT), new MeshEntity(flM)]);
 
+        const gun = new BABYLON.Mesh('gun', this.scene);
+        gun.scaling = new BABYLON.Vector3(0.2, 0.2, 0.2);
+        var vertexData = new BABYLON.VertexData();
+        vertexData.positions = _GunMeshData.positions;
+        vertexData.indices = _GunMeshData.indices;
+        vertexData.uvs = _GunMeshData.uvs;
+        vertexData.applyToMesh(gun);
+        const material = new BABYLON.StandardMaterial('gunmat', this.scene);
+        //material.emissiveTexture = this.textures.t[9];
+        material.diffuseTexture = this.textures.t[10];
+        material.emissiveTexture = this.textures.t[11];
+        //material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        material.specularColor = new BABYLON.Color3(0, 0, 0);
+        //material.disableLighting = true;
+        gun.material = material;
+        this._secs.createEntity([new ControllerInput(handedness.RIGHT), new MeshEntity(gun)]);
         // xrHelper.baseExperience.featuresManager.enableFeature(
         //     BABYLON.WebXRFeatureName.WALKING_LOCOMOTION,
         //     'latest',
@@ -194,13 +214,6 @@ export class Game {
         // let l = basemesh.getVertexBuffer(BABYLON.VertexBuffer.UVKind);
         // basemesh.setVerticesBuffer([0, 0, 1, 1]);
 
-        const colors = [
-            new BABYLON.Color3(1, 0, 0), // Red
-            new BABYLON.Color3(1, 0.75, 0.8), // Pink
-            new BABYLON.Color3(0, 1, 1), // Cyan/Blue
-            new BABYLON.Color3(1, 0.5, 0), // Orange
-        ];
-
         for (let i = 0; i < 13; i++) {
             let x, y;
             do {
@@ -216,11 +229,6 @@ export class Game {
             ghost.position.z = y * SCALE;
             ghost.position.y = 1.5;
             ghost.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
-
-            // Clone the material and set the color
-            const ghostMaterial = material.clone(`ghostmat${i}`);
-            ghostMaterial.diffuseColor = colors[i % colors.length];
-            ghost.material = ghostMaterial;
 
             this._secs.createEntity([new GhostEntity(), new MeshEntity(ghost)]);
         }
