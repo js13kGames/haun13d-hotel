@@ -7,7 +7,7 @@ async function serve() {
     let ctx = await esbuild.context({
         entryPoints: ['./src/index.ts'],
         bundle: true,
-        minify: true,
+        minify: false,
         sourcemap: true,
         target: 'ES2022',
         format: 'esm',

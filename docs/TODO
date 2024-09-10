@@ -1,5 +1,8 @@
 # TODO
 
+@critical BUGS:
+    ☐ Clear ghost from list when killed.
+
 Must have:
 
     ~TinyWebXR:~
@@ -11,24 +14,37 @@ Must have:
 
     Game:
         Ghosts:
-            ☐ @today Spawn
-            ☐ Move
+            ✔ Spawn @done(24-09-10 20:37)
+            ✔ Move @done(24-09-10 23:43)
             ✔ Kill @done(24-09-03 20:52)
+            ☐ Attack player
+                attack = game over
+            ☐ Count the killed ghosts
         ✔ Hotel Floor Model @done(24-09-07 21:40)
+        ☐ Add an elevetor for the exit == win condition (+13 ghosts)
         Game States:
             ☐ Pregame
             ☐ Playing
             ☐ GameOver
+flow; NotVR -> Enter VR == Playing -> Dead == EXIT VR
 
 Should have:
     ✔ Better lighting, more sources and omni lights @done(24-09-03 20:52)
     ✔ Batching of models per material. @done(24-09-07 21:22)
+    ☐ More interesting level design
+      Maybe add 3x3 areas. 
+    ☐ Better textures
+    ☐ Soundfx
+    
 
 Could have:
     ✔ A flashlight @done(24-09-07 21:22)
+    ☐ Particles
+    ☐ Gun effects
+    ☐ Music
 
 Would Like:
-
+    ☐ dust particles
 
 #ideas 
 #- Combine all textures into a 4x4 atlas and use 1 mesh for the scene.

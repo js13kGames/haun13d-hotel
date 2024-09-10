@@ -1,4 +1,5 @@
 import {Game, SCALE} from './Game';
+import {vec2} from './Maths';
 // prettier-ignore
 const cube = {
 'atlas': 
@@ -8,7 +9,7 @@ const cube = {
 const _GRID_WALL = 'wall';
 const _GRID_START = 'start';
 const _GRID_END = 'end';
-const _GRID_CORRIDOR = 'corridor';
+export const _GRID_CORRIDOR = 'corridor';
 
 export class HotelFloor {
     /**
@@ -20,6 +21,10 @@ export class HotelFloor {
      * The walls of the maze
      */
     public w: BABYLON.AbstractMesh[] = [];
+
+    //enemy array
+    public e: Map<number, vec2> = new Map();
+
     private _scene: BABYLON.Scene;
     private _params: {width: number; height: number};
     private _game: Game;
