@@ -60,8 +60,8 @@ export class AI extends Component {
             // Move towards the target
             const x = lerp(this._pos.x, this._targetPos.x, this._time / _SPEED);
             const y = lerp(this._pos.y, this._targetPos.y, this._time / _SPEED);
-            e.get(MeshEntity).mesh.position.x = x * 3;
-            e.get(MeshEntity).mesh.position.z = y * 3;
+            e.get(MeshEntity)._mesh.position.x = x * 3;
+            e.get(MeshEntity)._mesh.position.z = y * 3;
         }
     }
 
@@ -83,7 +83,10 @@ export class AI extends Component {
                 return this._inkyMove(Game.instance._playerGridPos, Game.instance._hotelFloor.e.get(this._t as number));
             case AIType.Clyde:
                 // pick a corner
-                this._t = this._t ?? {x: Math.random() < 0.5 ? 0 : _LEVELWIDTH, y: Math.random() < 0.5 ? 0 : _LEVELHEIGHT};
+                this._t = this._t ?? {
+                    x: Math.random() < 0.5 ? 0 : _LEVELWIDTH,
+                    y: Math.random() < 0.5 ? 0 : _LEVELHEIGHT,
+                };
                 return this._clydeMove(Game.instance._playerGridPos, this._t);
         }
     }

@@ -2,7 +2,7 @@ import {Entity} from '../Entity';
 import {Component} from './Component';
 
 export class MeshEntity extends Component {
-    mesh: BABYLON.AbstractMesh;
+    _mesh: BABYLON.AbstractMesh;
 
     /**
      * Entity to control a mesh
@@ -10,6 +10,11 @@ export class MeshEntity extends Component {
      */
     constructor(mesh: BABYLON.AbstractMesh) {
         super();
-        this.mesh = mesh;
+        this._mesh = mesh;
+    }
+
+    override dispose(): void {
+        console.log('Disposing mesh entity');
+        this._mesh.dispose();
     }
 }

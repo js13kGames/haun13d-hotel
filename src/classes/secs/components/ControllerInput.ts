@@ -6,11 +6,11 @@ export enum handedness {
 }
 
 export class ControllerInput extends Component {
-    handedness: handedness;
-    triggerPressed: boolean = false;
+    _handedness: handedness;
+    _triggerPressed: boolean = false;
 
     constructor(handedness: handedness) {
         super();
-        this.handedness = handedness;
+        this._handedness = handedness;
     }
 }

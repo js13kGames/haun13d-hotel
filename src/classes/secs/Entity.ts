@@ -17,20 +17,22 @@ export class Entity {
     /**
      * Retrieves the specified component.
      */
-    get(comp) {
-        return this.secs.entitiesToComponents[this.id][comp.name];
+    //get(comp) {
+    get<T>(comp: {new (...args: any[]): T}): T {
+        return this.secs._entitiesToComponents[this.id][comp.name] as T;
     }
+
     /**
      * Adds the specified component.
      */
-    add(component) {
-        var name = component.constructor.name;
-        if (!this.secs.componentsToEntities[name]) {
-            this.secs.componentsToEntities[name] = [];
+    add(_component: any) {
+        var name = _component.constructor.name;
+        if (!this.secs._componentsToEntities[name]) {
+            this.secs._componentsToEntities[name] = [];
         }
 
-        this.secs.entitiesToComponents[this.id][name] = component;
-        this.secs.componentsToEntities[name][this.id] = true;
+        this.secs._entitiesToComponents[this.id][name] = _component;
+        this.secs._componentsToEntities[name][this.id] = true;
     }
     /**
      * Removes the specified component.
@@ -43,10 +45,11 @@ export class Entity {
      * Kills the entity.
      */
     kill() {
-        delete this.secs.entities[this.id];
-        delete this.secs.entitiesToComponents[this.id];
-        for (var comp in this.secs.componentsToEntities) {
-            delete this.secs.componentsToEntities[comp][this.id];
-        }
+        const {id, secs} = this;
+        delete secs._entities[id];
+        const e = secs._entitiesToComponents[id];
+        for (const k in e) e[k]?.dispose();
+        delete secs._entitiesToComponents[id];
+        for (const comp in secs._componentsToEntities) delete secs._componentsToEntities[comp][id];
     }
 }

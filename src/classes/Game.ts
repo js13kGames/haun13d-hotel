@@ -64,7 +64,7 @@ export class Game {
 
     private _render = () => {
         let _dt = this.engine.getDeltaTime();
-        this._secs.match(ControllerInput).map((e) => this._inputS.controllers(e, _dt));
+        this._secs.match(ControllerInput).map((e) => this._inputS._controllers(e, _dt));
         this._secs.match(GhostEntity).map((e) => e.get(GhostEntity).update(_dt, e));
         this._secs.match(Gun).map((e) => e.get(Gun).update(_dt, e));
 
@@ -89,7 +89,7 @@ export class Game {
         this.engine = new BABYLON.Engine(canvas, true);
         this.scene = new BABYLON.Scene(this.engine);
 
-        this._secs.registerSystems([this._inputS]);
+        this._secs._registerSystems([this._inputS]);
 
         this.scene.clearColor = new BABYLON.Color4();
         this.scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
@@ -141,14 +141,17 @@ export class Game {
         xrHelper.baseExperience.camera.parent = xrRoot;
         xrHelper.baseExperience.camera.applyGravity = true;
         xrHelper.baseExperience.camera.checkCollisions = true;
-        // let l = new BABYLON.PointLight('userlight', new BABYLON.Vector3(0, 0, 0), this.scene);
-        // l.range = 15;
-        // l.specular = new BABYLON.Color3(0.2, 0.2, 0);
-        // l.falloffType = BABYLON.Light.FALLOFF_PHYSICAL;
-        // l.parent = xrHelper.baseExperience.camera;
 
+        // create flashlight
         const flM = BABYLON.CreateCylinder('fl', {height: 0.15, diameterTop: 0.02, diameterBottom: 0.03});
-        const fl = new BABYLON.SpotLight('fl', new BABYLON.Vector3(0, -0.1, 0), new BABYLON.Vector3(0, -1, 0), Math.PI / 2, 10, this.scene);
+        const fl = new BABYLON.SpotLight(
+            'fl',
+            new BABYLON.Vector3(0, -0.1, 0),
+            new BABYLON.Vector3(0, -1, 0),
+            Math.PI / 2,
+            10,
+            this.scene
+        );
         fl.diffuse = new BABYLON.Color3(1, 1, 1);
         fl.specular = new BABYLON.Color3(1, 1, 1);
         fl.range = 25;
@@ -159,8 +162,9 @@ export class Game {
         flM.parent = d;
 
         // @ts-ignore - incorrect type (d), but for the jam it's fine
-        this._secs.createEntity([new ControllerInput(handedness.LEFT), new MeshEntity(d)]);
+        this._secs._createEntity([new ControllerInput(handedness.LEFT), new MeshEntity(d)]);
 
+        // create gun
         const gun = new BABYLON.Mesh('gun', this.scene);
         gun.scaling = new BABYLON.Vector3(0.2, 0.2, 0.2);
         var vertexData = new BABYLON.VertexData();
@@ -169,27 +173,17 @@ export class Game {
         vertexData.uvs = _GunMeshData.uvs;
         vertexData.applyToMesh(gun);
         const material = new BABYLON.StandardMaterial('gunmat', this.scene);
-        //material.emissiveTexture = this.textures.t[9];
         material.diffuseTexture = this.textures.t[10];
         material.emissiveTexture = this.textures.t[11];
-        //material.emissiveColor = new BABYLON.Color3(1, 1, 1);
         material.specularColor = new BABYLON.Color3(0, 0, 0);
-        //material.disableLighting = true;
         gun.material = material;
 
-        this._secs.createEntity([new ControllerInput(handedness.RIGHT), new MeshEntity(gun), new Gun(this._shoot)]);
-        // xrHelper.baseExperience.featuresManager.enableFeature(
-        //     BABYLON.WebXRFeatureName.WALKING_LOCOMOTION,
-        //     'latest',
-        //     {locomotionTarget: xrRoot}
-        // );
+        this._secs._createEntity([new ControllerInput(handedness.RIGHT), new MeshEntity(gun), new Gun(this._shoot)]);
 
         xrHelper.baseExperience.featuresManager.enableFeature(BABYLON.WebXRFeatureName.MOVEMENT, 'latest', {
             xrInput: xrHelper.input,
             movementSpeed: 0.1,
-            //rotationSpeed: 0.2,
             rotationEnabled: false,
-            //movementOrientationFollowsViewerPose: true, // default true
         });
 
         xrHelper.baseExperience.onStateChangedObservable.add((state) => {
@@ -208,38 +202,57 @@ export class Game {
             }
         });
         xrHelper.input.onControllerAddedObservable.add((_controller) => {
-            this._inputS.xrControllers.push(_controller);
+            this._inputS._xrControllers.push(_controller);
         });
 
-        xrHelper.baseExperience.sessionManager.onXRFrameObservable.add(() => {
-            if (xrHelper.baseExperience.state === BABYLON.WebXRState.IN_XR) {
-                //triangle.rotation.y = (0.5 + movementFeature..movementDirection.toEulerAngles().y);
-                //triangle.position.set(xrHelper.input.xrCamera.position.x, 0.5, xrHelper.input.xrCamera.position.z);
-            }
-        });
+        // xrHelper.baseExperience.sessionManager.onXRFrameObservable.add(() => {
+        //     if (xrHelper.baseExperience.state === BABYLON.WebXRState.IN_XR) {
+        //         //triangle.rotation.y = (0.5 + movementFeature..movementDirection.toEulerAngles().y);
+        //         //triangle.position.set(xrHelper.input.xrCamera.position.x, 0.5, xrHelper.input.xrCamera.position.z);
+        //     }
+        // });
     }
     private _shoot = (position: BABYLON.Vector3, forward: BABYLON.Vector3) => {
-        //console.log('Pew pew');
-        const ray = new BABYLON.Ray(position, forward, 25);
+        const _ray = new BABYLON.Ray(position, forward, 25);
 
-        ray.intersectsMeshes(this._ghosts, false).forEach((g) => {
-            ray.intersectsMeshes(this._hotelFloor.w, false).forEach((w) => {
-                if (w.distance < g.distance) {
-                    // hit wall and not a ghost
-                    return;
-                } else {
-                    // hit ghost
-                    console.log('Hit ghost');
-                    g.pickedMesh!.dispose();
-                    this._secs.match(GhostEntity).forEach((e) => {
-                        if (e.get(MeshEntity).mesh === g.pickedMesh) {
-                            //e.kill();
-                            console.log('Killed ghost');
-                        }
-                    });
+        // Initialize closest hits
+        let _closestWallHit!: BABYLON.PickingInfo | null;
+        let _closestGhostHit!: BABYLON.PickingInfo | null;
+        let _closestGhostIndex = -1;
+
+        // Check walls
+        _closestWallHit = _ray
+            .intersectsMeshes(this._hotelFloor.w, false)
+            .reduce((closest: BABYLON.PickingInfo | null, hit) => {
+                return !closest || hit.distance < closest.distance ? hit : closest;
+            }, null);
+
+        // Check ghosts and determine closest hit
+        this._ghosts.forEach((ghost, gi) => {
+            const ghostHit = _ray.intersectsMesh(ghost, false);
+            if (ghostHit.hit) {
+                if (!_closestGhostHit || ghostHit.distance < _closestGhostHit.distance) {
+                    _closestGhostHit = ghostHit;
+                    _closestGhostIndex = gi;
                 }
-            });
+            }
         });
+
+        // Determine final outcome based on closest hits
+        if (_closestGhostHit && (!_closestWallHit || _closestGhostHit.distance < _closestWallHit.distance)) {
+            _closestGhostHit.pickedMesh!.dispose();
+            const ghostEntity = this._secs
+                .match(GhostEntity)
+                .find((e) => e.get(MeshEntity)._mesh === _closestGhostHit?.pickedMesh);
+            if (ghostEntity) {
+                this._ghosts.splice(_closestGhostIndex, 1);
+                ghostEntity.kill();
+                console.log(`Killed ghost, ${this._ghosts.length} remaining`);
+            }
+        }
+        // else if (closestWallHit) {
+        //     console.log('Hit wall');
+        // }
     };
 
     private _spawnGhosts() {
@@ -271,7 +284,7 @@ export class Game {
             ghost.position.y = 1.5;
             ghost.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
             ghost.isPickable = true;
-            this._secs.createEntity([new GhostEntity(), new MeshEntity(ghost), new AI(i, x, y)]);
+            this._secs._createEntity([new GhostEntity(), new MeshEntity(ghost), new AI(i, x, y)]);
             this._ghosts.push(ghost);
         }
     }

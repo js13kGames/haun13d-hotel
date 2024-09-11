@@ -2,28 +2,28 @@ import {Component} from './components/Component';
 import {Entity} from './Entity';
 
 export class Secs {
-    nextID = 0;
-    entities: Entity[] = [];
-    entitiesToComponents: Component[] = [];
-    componentsToEntities = {};
-    system = {};
+    _nextID = 0;
+    _entities: Entity[] = [];
+    _entitiesToComponents: Component[] = [];
+    _componentsToEntities = {};
+    _system = {};
 
-    registerSystems(systems) {
+    _registerSystems(systems) {
         systems.forEach((s) => {
             var name = s.constructor.name;
-            this.system[name] = s;
+            this._system[name] = s;
         });
     }
 
     /**
      * Creates a new entity.
      */
-    createEntity(components) {
-        var entityID = this.nextID++;
+    _createEntity(components) {
+        var entityID = this._nextID++;
         var entity = new Entity(entityID, this);
 
-        this.entities[entityID] = entity;
-        this.entitiesToComponents[entityID] = {} as Component;
+        this._entities[entityID] = entity;
+        this._entitiesToComponents[entityID] = {} as Component;
 
         if (components) {
             components.forEach((component) => {
@@ -37,9 +37,9 @@ export class Secs {
     /**
      * Returns all entities having the specified component.
      */
-    match(comp) {
-        return Object.keys(this.componentsToEntities[comp.name] || []).map((entityID) => {
-            return this.entities[entityID];
+    match<T>(comp: {new (...args: any[]): T}): Entity[] {
+        return Object.keys(this._componentsToEntities[comp.name] || []).map((entityID) => {
+            return this._entities[entityID];
         });
     }
 }
