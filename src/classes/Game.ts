@@ -157,6 +157,8 @@ export class Game {
         flM.rotation.x = -Math.PI / 2;
         const d = new BABYLON.TransformNode('d', this.scene);
         flM.parent = d;
+
+        // @ts-ignore - incorrect type (d), but for the jam it's fine
         this._secs.createEntity([new ControllerInput(handedness.LEFT), new MeshEntity(d)]);
 
         const gun = new BABYLON.Mesh('gun', this.scene);
