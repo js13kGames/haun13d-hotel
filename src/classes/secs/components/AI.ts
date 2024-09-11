@@ -45,15 +45,15 @@ export class AI extends Component {
     private _time = _SPEED;
 
     override update(dt: number, e: Entity) {
+        const pp = Game.instance._playerGridPos;
         this._time += dt / 1000;
-        //const _grid = Game.instance._hotelFloor.g;
-        // Are we at the location we need to be?
-        if (this._time > _SPEED) {
-            //if (this._pos.x == this._targetPos.x && this._pos.y == this._targetPos.y) {
+
+        // time to retarget?
+        if (this._time >= _SPEED) {
             // Get the next location
             this._pos.x = this._targetPos.x;
             this._pos.y = this._targetPos.y;
-            this._targetPos = this._getTargetPos();
+            this._targetPos = this._getTargetPos(pp);
             Game.instance._hotelFloor.e.set(this._id, this._targetPos);
             this._time = 0;
         } else {
@@ -62,15 +62,23 @@ export class AI extends Component {
             const y = lerp(this._pos.y, this._targetPos.y, this._time / _SPEED);
             e.get(MeshEntity)._mesh.position.x = x * 3;
             e.get(MeshEntity)._mesh.position.z = y * 3;
+
+            if (this._pos.x === this._targetPos.x && this._pos.y === this._targetPos.y) {
+                this._time = _SPEED;
+            }
+        }
+        const dist = this._distanceToPlayer(pp);
+        if (dist <= 1) {
+            console.log(`ATTACK! ${this._id}, ${dist}`);
         }
     }
 
-    private _getTargetPos(): vec2 {
+    private _getTargetPos(pp: vec2): vec2 {
         switch (this._type) {
             case AIType.Blinky:
-                return this._blinkyMove(Game.instance._playerGridPos);
+                return this._blinkyMove(pp);
             case AIType.Pinky:
-                return this._pinkyMove(Game.instance._playerGridPos);
+                return this._pinkyMove(pp);
             case AIType.Inky:
                 // find a Blinky to follow;
                 if (!this._t) {
@@ -80,31 +88,31 @@ export class AI extends Component {
                         .filter((a) => a._type === AIType.Blinky && a._id !== this._id);
                     this._t = _blinkies[~~(Math.random() * _blinkies.length)]?._id;
                 }
-                return this._inkyMove(Game.instance._playerGridPos, Game.instance._hotelFloor.e.get(this._t as number));
+                return this._inkyMove(pp, Game.instance._hotelFloor.e.get(this._t as number));
             case AIType.Clyde:
                 // pick a corner
                 this._t = this._t ?? {
                     x: Math.random() < 0.5 ? 0 : _LEVELWIDTH,
                     y: Math.random() < 0.5 ? 0 : _LEVELHEIGHT,
                 };
-                return this._clydeMove(Game.instance._playerGridPos, this._t);
+                return this._clydeMove(pp, this._t);
         }
     }
 
-    _blinkyMove(player) {
+    _blinkyMove(player: vec2) {
         let x = 0;
         if (this._pos.x < player.x) x = 1;
         if (this._pos.x > player.x) x = -1;
         // check if possible to move in that direction
         // if so, return that direction otherwise check up and down
-        if (this._canGoThere(x, 0)) {
+        if (x != 0 && this._canGoThere(x, 0)) {
             return {x: this._pos.x + x, y: this._pos.y};
         }
 
         let y = 0;
         if (this._pos.y < player.y) y = 1;
         if (this._pos.y > player.y) y = -1;
-        if (this._canGoThere(0, y)) {
+        if (y != 0 && this._canGoThere(0, y)) {
             return {x: this._pos.x, y: this._pos.y + y};
         }
 
@@ -121,11 +129,10 @@ export class AI extends Component {
                 go = false;
             }
         }
-
         return go;
     }
 
-    _pinkyMove(player) {
+    _pinkyMove(player: vec2) {
         let target = {x: player.x, y: player.y};
         switch (~~(Math.random() * 4)) {
             case 0:
@@ -156,8 +163,16 @@ export class AI extends Component {
     }
 
     _clydeMove(player, scatterCorner) {
-        let distanceToPlayer2 = (player.x - this._pos.x) ** 2 + (player.y - this._pos.y) ** 2;
+        let distanceToPlayer2 = this._distanceToPlayer(player);
         let target = distanceToPlayer2 < 64 ? player : scatterCorner;
         return this._blinkyMove(target);
+    }
+
+    private _distanceToPlayer(player: vec2) {
+        return (player.x - this._pos.x) ** 2 + (player.y - this._pos.y) ** 2;
+    }
+
+    override dispose() {
+        Game.instance._hotelFloor.e.delete(this._id);
     }
 }

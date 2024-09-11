@@ -108,6 +108,9 @@ export class Game {
                     this.scene.debugLayer.show();
                 }
             }
+            if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.code === 'KeyL') {
+                new BABYLON.HemisphericLight('debug light', new BABYLON.Vector3(7.5, 2.5, 7.5), this.scene);
+            }
         });
         //#endif
 
@@ -122,7 +125,6 @@ export class Game {
         this.c = camera;
         //camera.applyGravity = true;
         //camera.checkCollisions = true;
-        //new BABYLON.HemisphericLight('debug light', new BABYLON.Vector3(7.5, 2.5, 7.5), this.scene);
         //#endif
     }
 
