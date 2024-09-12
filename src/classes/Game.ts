@@ -252,8 +252,8 @@ export class Game {
         vertexData.uvs = _GunMeshData.uvs;
         vertexData.applyToMesh(this._gun);
         const material = new BABYLON.StandardMaterial('gunmat', this.scene);
-        material.diffuseTexture = this.textures.t[11];
-        material.emissiveTexture = this.textures.t[12];
+        material.diffuseTexture = this.textures.t[12];
+        material.emissiveTexture = this.textures.t[13];
         material.specularColor = new BABYLON.Color3(0, 0, 0);
         this._gun.material = material;
 
@@ -387,7 +387,7 @@ export class Game {
         vertexData.uvs = [1, 1, 1, 0, 0.83, 0, 0.83, 1, 0.83, 1, 0.83, 0];
         vertexData.applyToMesh(m);
         const material = new BABYLON.StandardMaterial('gameovermat');
-        material.diffuseTexture = this.textures.t[10];
+        material.diffuseTexture = this.textures.t[11];
         material.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
         //material.specularColor = new BABYLON.Color3(0, 0, 0);
         material.diffuseTexture.hasAlpha = true;
@@ -416,7 +416,7 @@ export class Game {
         vertexData.applyToMesh(basemesh);
 
         const material = new BABYLON.StandardMaterial('ghostmat', this.scene);
-        material.diffuseTexture = this.textures.t[10];
+        material.diffuseTexture = this.textures.t[11];
         material.specularColor = new BABYLON.Color3(0, 0, 0);
         material.diffuseTexture.hasAlpha = true;
         basemesh.material = material;
