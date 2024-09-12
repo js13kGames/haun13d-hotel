@@ -101,6 +101,8 @@ export class Game {
                     if (this._ghosts.length === 0) {
                         // all ghosts are dead
                         this._state = GameState.WIN;
+                        this._xrHelper.input.dispose();
+                        this._secs.match(ControllerInput).map((e) => e.kill());
                     }
                 }
 
@@ -118,10 +120,12 @@ export class Game {
                 }, 2000);
                 break;
             case GameState.WIN:
-                this._fadeState = -0.5;
+                this._fadeState = -1;
                 setTimeout(async () => {
                     this._flashlight?.dispose();
                     this._xrHelper.enterExitUI.overlay.remove();
+                    this.c.rotation.setAll(0);
+                    this.c.position.set(0, 1.7, 0);
                     await this._xrHelper.baseExperience.exitXRAsync();
 
                     // @ts-ignore
@@ -174,6 +178,15 @@ export class Game {
         //#endif
 
         const camera = new BABYLON.FreeCamera('camera', new BABYLON.Vector3(0, 1.7, 0), this.scene);
+
+        // Light near the exit
+        new BABYLON.SpotLight(
+            '',
+            new BABYLON.Vector3((_LEVELWIDTH - 1) * SCALE, 5, (_LEVELHEIGHT - 1) * SCALE + 1),
+            new BABYLON.Vector3(0, -1, 0),
+            Math.PI / 2,
+            10
+        );
 
         //#ifdef DEBUG
         // camera.position = new BABYLON.Vector3(72.18, 69.69, 20.79);
@@ -234,8 +247,8 @@ export class Game {
         vertexData.uvs = _GunMeshData.uvs;
         vertexData.applyToMesh(this._gun);
         const material = new BABYLON.StandardMaterial('gunmat', this.scene);
-        material.diffuseTexture = this.textures.t[10];
-        material.emissiveTexture = this.textures.t[11];
+        material.diffuseTexture = this.textures.t[11];
+        material.emissiveTexture = this.textures.t[12];
         material.specularColor = new BABYLON.Color3(0, 0, 0);
         this._gun.material = material;
 
@@ -362,7 +375,7 @@ export class Game {
         vertexData.uvs = [1, 1, 1, 0, 0.83, 0, 0.83, 1, 0.83, 1, 0.83, 0];
         vertexData.applyToMesh(m);
         const material = new BABYLON.StandardMaterial('gameovermat');
-        material.diffuseTexture = this.textures.t[9];
+        material.diffuseTexture = this.textures.t[10];
         material.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
         //material.specularColor = new BABYLON.Color3(0, 0, 0);
         material.diffuseTexture.hasAlpha = true;
@@ -383,7 +396,7 @@ export class Game {
 
     private _spawnGhosts() {
         const basemesh = new BABYLON.Mesh('ghost', this.scene);
-
+        basemesh.position.y = -100;
         var vertexData = new BABYLON.VertexData();
         vertexData.positions = _GhostMeshData.positions;
         vertexData.indices = _GhostMeshData.indices;
@@ -391,7 +404,7 @@ export class Game {
         vertexData.applyToMesh(basemesh);
 
         const material = new BABYLON.StandardMaterial('ghostmat', this.scene);
-        material.diffuseTexture = this.textures.t[9];
+        material.diffuseTexture = this.textures.t[10];
         material.specularColor = new BABYLON.Color3(0, 0, 0);
         material.diffuseTexture.hasAlpha = true;
         basemesh.material = material;
