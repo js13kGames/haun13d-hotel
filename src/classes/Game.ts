@@ -41,6 +41,8 @@ export class Game {
     private _state: GameState = GameState.LOADING;
     private _ghosts: BABYLON.AbstractMesh[] = [];
     c!: BABYLON.FreeCamera;
+    _hud!: BABYLON.Mesh;
+    _gun!: BABYLON.Mesh;
 
     constructor() {
         Game.instance = this;
@@ -97,6 +99,12 @@ export class Game {
         this.textures = new Textures();
         await this.textures.load(this.scene);
 
+        this._hud = BABYLON.MeshBuilder.CreatePlane('leveldesc', {size: 0.5});
+        this._hud.renderingGroupId = 1;
+        this._hud.position = new BABYLON.Vector3(0, 0, 1);
+        this._hud.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+        this._hud.material = new BABYLON.StandardMaterial('hudmat');
+        this._createText(this._hud, 'ld', '36px monospace', 'Kill all 13 ghosts\nand escape!', '#FFFFFF');
         //#ifdef DEBUG
         // hide/show the Inspector
         window.addEventListener('keydown', (ev) => {
@@ -167,20 +175,24 @@ export class Game {
         this._secs._createEntity([new ControllerInput(handedness.LEFT), new MeshEntity(d)]);
 
         // create gun
-        const gun = new BABYLON.Mesh('gun', this.scene);
-        gun.scaling = new BABYLON.Vector3(0.2, 0.2, 0.2);
+        this._gun = new BABYLON.Mesh('gun', this.scene);
+        this._gun.scaling = new BABYLON.Vector3(0.2, 0.2, 0.2);
         var vertexData = new BABYLON.VertexData();
         vertexData.positions = _GunMeshData.positions;
         vertexData.indices = _GunMeshData.indices;
         vertexData.uvs = _GunMeshData.uvs;
-        vertexData.applyToMesh(gun);
+        vertexData.applyToMesh(this._gun);
         const material = new BABYLON.StandardMaterial('gunmat', this.scene);
         material.diffuseTexture = this.textures.t[10];
         material.emissiveTexture = this.textures.t[11];
         material.specularColor = new BABYLON.Color3(0, 0, 0);
-        gun.material = material;
+        this._gun.material = material;
 
-        this._secs._createEntity([new ControllerInput(handedness.RIGHT), new MeshEntity(gun), new Gun(this._shoot)]);
+        this._secs._createEntity([
+            new ControllerInput(handedness.RIGHT),
+            new MeshEntity(this._gun),
+            new Gun(this._shoot),
+        ]);
 
         xrHelper.baseExperience.featuresManager.enableFeature(BABYLON.WebXRFeatureName.MOVEMENT, 'latest', {
             xrInput: xrHelper.input,
@@ -200,6 +212,7 @@ export class Game {
                 case BABYLON.WebXRState.ENTERING_XR:
                     this._state = GameState.PLAYING;
                     this.c = xrHelper.baseExperience.camera.leftCamera!;
+                    this._hud.parent = this.c;
                     break;
             }
         });
@@ -289,5 +302,19 @@ export class Game {
             this._secs._createEntity([new GhostEntity(), new MeshEntity(ghost), new AI(i, x, y)]);
             this._ghosts.push(ghost);
         }
+    }
+
+    _createText(mesh, name, font, text, color) {
+        const dt = new BABYLON.DynamicTexture(`dt${name}`, {width: 1200, height: 1200});
+        const smat = new BABYLON.StandardMaterial(`mat${name}`);
+        dt.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
+        smat.diffuseTexture = dt;
+        smat.emissiveTexture = dt;
+        smat.specularColor = BABYLON.Color3.Black();
+        mesh.material = smat;
+        let t = text.split('\n');
+        dt.drawText(t[0], null, 36, font, color, 'rgba(0,0,0,0)', true, true);
+        if (t[1]) dt.drawText(t[1], null, 72, font, color, 'rgba(0,0,0,0)', true, true);
+        dt.hasAlpha = true;
     }
 }

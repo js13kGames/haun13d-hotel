@@ -67,8 +67,12 @@ export class AI extends Component {
                 this._time = _SPEED;
             }
         }
-        const dist = this._distanceToPlayer(pp);
-        if (dist <= 1) {
+
+        const dist = BABYLON.Vector2.Distance(
+            {x: e.get(MeshEntity)._mesh.position.x, y: e.get(MeshEntity)._mesh.position.z},
+            {x: Game.instance._playerGridPos.x * 3, y: Game.instance._playerGridPos.y * 3}
+        );
+        if (dist <= 3) {
             console.log(`ATTACK! ${this._id}, ${dist}`);
         }
     }
