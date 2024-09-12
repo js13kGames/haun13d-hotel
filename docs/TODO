@@ -3,6 +3,7 @@
 @critical BUGS:
     ✔ Clear ghost from list when killed. @done(24-09-11 21:47)
     ✔ Prevent shooting through walls. @done(24-09-11 21:47)
+    ☐ Odd Flickering when exiting VR.
 
 Must have:
 
@@ -12,7 +13,10 @@ Must have:
 
     SECS:
         ✔ Implement basics @done(24-09-07 21:23)
-
+    HTML:
+        ☐ Very basic HTML with title
+        ☐ Very basic HTML with Game Over
+        ☐ Button to restart the game == Refresh the browser
     Game:
         Ghosts:
             ✔ Spawn @done(24-09-10 20:37)
@@ -20,16 +24,16 @@ Must have:
             ✔ Kill @done(24-09-03 20:52)
             ☐ Make sure they do not spawn too close to the player.
               Just add a simple check at spawntime
-            ☐ Attack player
+            ✔ Attack player @done(24-09-12 21:50)
                 attack = game over
             ✔ Count the killed ghosts @done(24-09-11 21:47)
         ✔ Hotel Floor Model @done(24-09-07 21:40)
         ☐ Add an elevetor for the exit == win condition (+13 ghosts)
         Game States:
             ☐ Pregame Not in XR -> Start the game by entering XR
-            ☐ Playing
-            ☐ GameOver
-            ☐ Win
+            ✔ Playing @done(24-09-12 16:18)
+            ✔ GameOver @done(24-09-12 21:49)
+            ✔ Win @done(24-09-12 16:18)
             Detect 13 ghosts killed and standing on target in front of elevator
             ☐ Restart the game by refreshing the page = Leaving XR
 flow; NotVR -> Enter VR == Playing -> Dead == EXIT VR
@@ -42,16 +46,23 @@ Should have:
     ☐ Better textures
     ☐ Soundfx
     ☐ Fade to black on start, gameover and win.
-    
+    ☐ Add a 'You win' and 'You lose' text
+    ☐ Better HTML
+    ☐ Button to restart the game without refresh
 
 Could have:
     ✔ A flashlight @done(24-09-07 21:22)
     ☐ Particles
     ☐ Gun effects
     ☐ Music
+    ☐ Stay in VR for whole gameloop
+    ☐ Custom 'ENTER VR' button
 
 Would Like:
     ☐ dust particles
+    improve SECS:
+        ☐ Add general update loop
+        ☐ Add active state
 
 #ideas 
 #- Combine all textures into a 4x4 atlas and use 1 mesh for the scene.

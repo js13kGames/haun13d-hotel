@@ -14,7 +14,6 @@ export class MeshEntity extends Component {
     }
 
     override dispose(): void {
-        console.log('Disposing mesh entity');
         this._mesh.dispose();
     }
 }

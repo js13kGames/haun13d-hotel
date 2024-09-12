@@ -1,14 +1,15 @@
-import { _GhostMeshData } from './Ghost';
-import { _GunMeshData } from './Gun';
-import { HotelFloor } from './HotelFloor';
-import { AI } from './secs/components/AI';
-import { ControllerInput, handedness } from './secs/components/ControllerInput';
-import { GhostEntity } from './secs/components/GhostEntity';
-import { Gun } from './secs/components/Gun';
-import { MeshEntity } from './secs/components/MeshEntity';
-import { Secs } from './secs/secs';
-import { InputSystem } from './secs/systems/InputSystem';
-import { Textures } from './Textures';
+import {_GhostMeshData} from './Ghost';
+import {_GunMeshData} from './Gun';
+import {HotelFloor} from './HotelFloor';
+import {AI} from './secs/components/AI';
+import {ControllerInput, handedness} from './secs/components/ControllerInput';
+import {GhostEntity} from './secs/components/GhostEntity';
+import {Gun} from './secs/components/Gun';
+import {MeshEntity} from './secs/components/MeshEntity';
+import {Scale} from './secs/components/Scale';
+import {Secs} from './secs/secs';
+import {InputSystem} from './secs/systems/InputSystem';
+import {Textures} from './Textures';
 
 export const SCALE = 3,
     _LEVELWIDTH = 13,
@@ -34,7 +35,7 @@ export class Game {
     engine!: BABYLON.Engine;
     textures!: Textures;
     _hotelFloor!: HotelFloor;
-    _playerGridPos!: { x: number; y: number };
+    _playerGridPos!: {x: number; y: number};
     _secs: Secs = new Secs();
 
     private _inputS = new InputSystem();
@@ -44,11 +45,18 @@ export class Game {
     c!: BABYLON.FreeCamera;
     _hud!: BABYLON.Mesh;
     _gun!: BABYLON.Mesh;
+    private _underAttack: boolean = false;
+    private _flashlight?: BABYLON.SpotLight;
+    _tonemapLeftXR?: BABYLON.TonemapPostProcess;
+    _tonemapRightXR?: BABYLON.TonemapPostProcess;
+    _currentFade: number = 0;
+    _fadeState: number = 0;
+    _xrHelper!: BABYLON.WebXRDefaultExperience;
 
     constructor() {
         Game.instance = this;
         this._initialize().then(() => {
-            this._hotelFloor = new HotelFloor(this, this.scene, { width: _LEVELWIDTH, height: _LEVELHEIGHT });
+            this._hotelFloor = new HotelFloor(this, this.scene, {width: _LEVELWIDTH, height: _LEVELHEIGHT});
 
             this.engine.runRenderLoop(this._render);
 
@@ -67,34 +75,42 @@ export class Game {
 
     private _render = () => {
         let _dt = this.engine.getDeltaTime();
+
         this._secs.match(ControllerInput).map((e) => this._inputS._controllers(e, _dt));
         this._secs.match(GhostEntity).map((e) => e.get(GhostEntity).update(_dt, e));
         this._secs.match(Gun).map((e) => e.get(Gun).update(_dt, e));
-
+        this._secs.match(Scale).map((e) => e.get(Scale).update(_dt, e));
         switch (this._state) {
             case GameState.LOADING:
                 console.log('Loading');
                 break;
             case GameState.PLAYING:
+                if (this._underAttack) break;
                 this._playerGridPos = {
                     x: ~~((this.c.position.x + 0.5) / SCALE),
                     y: ~~((this.c.position.z + 0.5) / SCALE),
                 };
-                if (this._playerGridPos.x == _LEVELWIDTH - 1 &&
-                    this._playerGridPos.y == _LEVELWIDTH - 1) {
+                if (this._playerGridPos.x == _LEVELWIDTH - 1 && this._playerGridPos.y == _LEVELWIDTH - 1) {
                     // player is standing on the target.
-                    if(this._ghosts.length === 0) {
+                    if (this._ghosts.length === 0) {
                         // all ghosts are dead
                         this._state = GameState.WIN;
                     }
                 }
 
-
-                this._secs.match(AI).map((e) => e.get(AI).update(_dt, e));
+                this._secs.match(AI)?.map((e) => e.get(AI).update(_dt, e));
                 break;
-                case GameState.WIN:
-                    console.log('You win!');
-                    break;
+            case GameState.GAME_OVER:
+                this._fadeState = -2;
+                setTimeout(async () => {
+                    this._flashlight?.dispose();
+                    this._xrHelper.baseExperience.exitXRAsync();
+                }, 2000);
+                break;
+            case GameState.WIN:
+                this._fadeState = -0.5;
+                console.log('You win!');
+                break;
         }
 
         this.scene.render();
@@ -113,12 +129,12 @@ export class Game {
         this.textures = new Textures();
         await this.textures.load(this.scene);
 
-        this._hud = BABYLON.MeshBuilder.CreatePlane('leveldesc', { size: 0.5 });
-        this._hud.renderingGroupId = 1;
-        this._hud.position = new BABYLON.Vector3(0, 0, 1);
-        this._hud.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-        this._hud.material = new BABYLON.StandardMaterial('hudmat');
-        this._createText(this._hud, 'ld', '36px monospace', 'Kill all 13 ghosts\nand escape!', '#FFFFFF');
+        // this._hud = BABYLON.MeshBuilder.CreatePlane('leveldesc', {size: 0.5});
+        // this._hud.renderingGroupId = 1;
+        // this._hud.position = new BABYLON.Vector3(0, 0, 1);
+        // this._hud.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+        // this._hud.material = new BABYLON.StandardMaterial('hudmat');
+        // this._createText(this._hud, 'ld', '36px monospace', 'Kill all 13 ghosts\nand escape!', '#FFFFFF');
         //#ifdef DEBUG
         // hide/show the Inspector
         window.addEventListener('keydown', (ev) => {
@@ -151,7 +167,7 @@ export class Game {
     }
 
     private async _initializeXR() {
-        const xrHelper = await this.scene.createDefaultXRExperienceAsync({
+        this._xrHelper = await this.scene.createDefaultXRExperienceAsync({
             disableNearInteraction: true,
             disablePointerSelection: true,
             disableTeleportation: true,
@@ -162,13 +178,13 @@ export class Game {
         });
 
         const xrRoot = new BABYLON.TransformNode('xrRoot', this.scene);
-        xrHelper.baseExperience.camera.parent = xrRoot;
-        xrHelper.baseExperience.camera.applyGravity = true;
-        xrHelper.baseExperience.camera.checkCollisions = true;
+        this._xrHelper.baseExperience.camera.parent = xrRoot;
+        this._xrHelper.baseExperience.camera.applyGravity = true;
+        this._xrHelper.baseExperience.camera.checkCollisions = true;
 
         // create flashlight
-        const flM = BABYLON.CreateCylinder('fl', { height: 0.15, diameterTop: 0.02, diameterBottom: 0.03 });
-        const fl = new BABYLON.SpotLight(
+        const flM = BABYLON.CreateCylinder('fl', {height: 0.15, diameterTop: 0.02, diameterBottom: 0.03});
+        this._flashlight = new BABYLON.SpotLight(
             'fl',
             new BABYLON.Vector3(0, -0.1, 0),
             new BABYLON.Vector3(0, -1, 0),
@@ -176,11 +192,11 @@ export class Game {
             10,
             this.scene
         );
-        fl.diffuse = new BABYLON.Color3(1, 1, 1);
-        fl.specular = new BABYLON.Color3(1, 1, 1);
-        fl.range = 25;
-        fl.shadowEnabled = true;
-        fl.parent = flM;
+        this._flashlight.diffuse = new BABYLON.Color3(1, 1, 1);
+        this._flashlight.specular = new BABYLON.Color3(1, 1, 1);
+        this._flashlight.range = 25;
+        this._flashlight.shadowEnabled = true;
+        this._flashlight.parent = flM;
         flM.rotation.x = -Math.PI / 2;
         const d = new BABYLON.TransformNode('d', this.scene);
         flM.parent = d;
@@ -208,29 +224,57 @@ export class Game {
             new Gun(this._shoot),
         ]);
 
-        xrHelper.baseExperience.featuresManager.enableFeature(BABYLON.WebXRFeatureName.MOVEMENT, 'latest', {
-            xrInput: xrHelper.input,
+        this._xrHelper.baseExperience.featuresManager.enableFeature(BABYLON.WebXRFeatureName.MOVEMENT, 'latest', {
+            xrInput: this._xrHelper.input,
             movementSpeed: 0.1,
             rotationEnabled: false,
         });
 
-        xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+        this._xrHelper.baseExperience.onStateChangedObservable.add((state) => {
             switch (state) {
                 case BABYLON.WebXRState.IN_XR:
+                    this._state = GameState.PLAYING;
+                    this.c = this._xrHelper.baseExperience.camera!;
+                    //this._hud.parent = this.c;
+                    if (!this._tonemapLeftXR) {
+                        this._tonemapLeftXR = new BABYLON.TonemapPostProcess(
+                            '',
+                            BABYLON.TonemappingOperator.Reinhard,
+                            0,
+                            this._xrHelper.baseExperience.camera.leftCamera
+                        );
+                        this._tonemapRightXR = new BABYLON.TonemapPostProcess(
+                            '',
+                            BABYLON.TonemappingOperator.Reinhard,
+                            0,
+                            this._xrHelper.baseExperience.camera.rightCamera
+                        );
+                    }
+                    if (this._currentFade < 1) {
+                        this._fadeState = 1;
+                    }
                     break;
                 case BABYLON.WebXRState.NOT_IN_XR:
-                    break;
-                case BABYLON.WebXRState.EXITING_XR:
                     this._state = GameState.PAUSED;
                     break;
+                case BABYLON.WebXRState.EXITING_XR:
+                    break;
                 case BABYLON.WebXRState.ENTERING_XR:
-                    this._state = GameState.PLAYING;
-                    this.c = xrHelper.baseExperience.camera.leftCamera!;
-                    this._hud.parent = this.c;
                     break;
             }
         });
-        xrHelper.input.onControllerAddedObservable.add((_controller) => {
+
+        this.scene.onBeforeRenderObservable.add(() => {
+            this._currentFade += 0.01 * this._fadeState;
+            if (this._tonemapLeftXR) this._tonemapLeftXR.exposureAdjustment = this._currentFade;
+            //if (this.tmC) this.tmC.exposureAdjustment = this._currentFade;
+            if (this._tonemapRightXR) this._tonemapRightXR.exposureAdjustment = this._currentFade;
+            if (this._currentFade >= 1.5 || this._currentFade < 0) {
+                this._fadeState = 0;
+            }
+        });
+
+        this._xrHelper.input.onControllerAddedObservable.add((_controller) => {
             this._inputS._xrControllers.push(_controller);
         });
 
@@ -283,9 +327,38 @@ export class Game {
         //     console.log('Hit wall');
         // }
     };
+    private _attack = () => {
+        if (this._underAttack) return;
+        this._underAttack = true;
+        const m = new BABYLON.Mesh('gameover');
+        m.position = this.c.getFrontPosition(2);
+        m.position.y = 0;
+        const vertexData = new BABYLON.VertexData();
+        vertexData.positions = [0, 0.5, 0, 0, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0, -0.5, -0.5, 0];
+        vertexData.indices = [0, 1, 2, 0, 2, 3, 4, 5, 1, 4, 1, 0];
+        vertexData.uvs = [1, 1, 1, 0, 0.83, 0, 0.83, 1, 0.83, 1, 0.83, 0];
+        vertexData.applyToMesh(m);
+        const material = new BABYLON.StandardMaterial('gameovermat');
+        material.diffuseTexture = this.textures.t[9];
+        material.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+        //material.specularColor = new BABYLON.Color3(0, 0, 0);
+        material.diffuseTexture.hasAlpha = true;
+        material.disableLighting = true;
+        m.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+        m.parent = this.c;
+        m.material = material;
+        m.renderingGroupId = 2;
+        this._secs._createEntity([new Scale(0.5, 3, 1), new MeshEntity(m)]);
+        setTimeout(() => {
+            this._xrHelper.input.dispose();
+            this._secs.match(ControllerInput).map((e) => e.kill());
+            this._state = GameState.GAME_OVER;
+            this._secs.match(GhostEntity).map((e) => e.kill());
+        }, 500);
+        this._secs.match(GhostEntity).map((e) => e.get(GhostEntity).dispose());
+    };
 
     private _spawnGhosts() {
-        
         const basemesh = new BABYLON.Mesh('ghost', this.scene);
 
         var vertexData = new BABYLON.VertexData();
@@ -314,13 +387,13 @@ export class Game {
             ghost.position.y = 1.5;
             ghost.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
             ghost.isPickable = true;
-            this._secs._createEntity([new GhostEntity(), new MeshEntity(ghost), new AI(i, x, y)]);
+            this._secs._createEntity([new GhostEntity(), new MeshEntity(ghost), new AI(i, x, y, this._attack)]);
             this._ghosts.push(ghost);
         }
     }
 
     _createText(mesh, name, font, text, color) {
-        const dt = new BABYLON.DynamicTexture(`dt${name}`, { width: 1200, height: 1200 });
+        const dt = new BABYLON.DynamicTexture(`dt${name}`, {width: 1200, height: 1200});
         const smat = new BABYLON.StandardMaterial(`mat${name}`);
         dt.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
         smat.diffuseTexture = dt;

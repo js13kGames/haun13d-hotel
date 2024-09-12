@@ -28,12 +28,14 @@ export class AI extends Component {
     private _pos: vec2 = new vec2();
     private _d: direction = 0;
     private _t!: vec2 | number;
+    private _attackCallback= () => {};
 
-    constructor(i: number, x: number, y: number) {
+
+    constructor(i: number, x: number, y: number, attackCallback: () => void) {
         super();
         // set random type
         this._type = ~~(Math.random() * 4);
-
+        this._attackCallback = attackCallback;
         // register to hotel floor
         Game.instance._hotelFloor.e.set(i, {x, y});
 
@@ -73,7 +75,8 @@ export class AI extends Component {
             {x: Game.instance._playerGridPos.x * 3, y: Game.instance._playerGridPos.y * 3}
         );
         if (dist <= 3) {
-            console.log(`ATTACK! ${this._id}, ${dist}`);
+            //console.log(`ATTACK! ${this._id}, ${dist}`);
+            this._attackCallback();
         }
     }
 

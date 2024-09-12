@@ -47,7 +47,7 @@
 
         const engine = new BABYLON.Engine(document.getElementById('renderCanvas'), true);
         var scene = new BABYLON.Scene(engine);
-        BABYLON.SceneLoader.ImportMesh("", "/", "block1.obj", scene, function (meshes) {
+        BABYLON.SceneLoader.ImportMesh("", "/", "scare.obj", scene, function (meshes) {
             const mesh = meshes[0];
             var positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind).map(v=>r(v));
             var normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);

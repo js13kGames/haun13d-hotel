@@ -27,7 +27,7 @@ export class Textures {
                     )
                 );
                 //#ifdef DEBUG
-                document.body.appendChild(x);
+                //document.body.appendChild(x);
                 //#endif
                 return x;
             });
@@ -41,7 +41,7 @@ export class Textures {
                 _atlasContext.drawImage(texture, x, y, tsize, tsize);
             });
             //#ifdef DEBUG
-            document.body.appendChild(_atlasCanvas);
+            //document.body.appendChild(_atlasCanvas);
             //#endif
             // add the atlas to the first position in the array.
             this.t.splice(
