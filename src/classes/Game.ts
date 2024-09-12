@@ -1,14 +1,14 @@
-import {_GhostMeshData} from './Ghost';
-import {_GunMeshData} from './Gun';
-import {HotelFloor} from './HotelFloor';
-import {AI} from './secs/components/AI';
-import {ControllerInput, handedness} from './secs/components/ControllerInput';
-import {GhostEntity} from './secs/components/GhostEntity';
-import {Gun} from './secs/components/Gun';
-import {MeshEntity} from './secs/components/MeshEntity';
-import {Secs} from './secs/secs';
-import {InputSystem} from './secs/systems/InputSystem';
-import {Textures} from './Textures';
+import { _GhostMeshData } from './Ghost';
+import { _GunMeshData } from './Gun';
+import { HotelFloor } from './HotelFloor';
+import { AI } from './secs/components/AI';
+import { ControllerInput, handedness } from './secs/components/ControllerInput';
+import { GhostEntity } from './secs/components/GhostEntity';
+import { Gun } from './secs/components/Gun';
+import { MeshEntity } from './secs/components/MeshEntity';
+import { Secs } from './secs/secs';
+import { InputSystem } from './secs/systems/InputSystem';
+import { Textures } from './Textures';
 
 export const SCALE = 3,
     _LEVELWIDTH = 13,
@@ -20,6 +20,7 @@ enum GameState {
     PLAYING,
     PAUSED,
     GAME_OVER,
+    WIN,
 }
 
 //#ifdef DEBUG
@@ -33,7 +34,7 @@ export class Game {
     engine!: BABYLON.Engine;
     textures!: Textures;
     _hotelFloor!: HotelFloor;
-    _playerGridPos!: {x: number; y: number};
+    _playerGridPos!: { x: number; y: number };
     _secs: Secs = new Secs();
 
     private _inputS = new InputSystem();
@@ -47,7 +48,7 @@ export class Game {
     constructor() {
         Game.instance = this;
         this._initialize().then(() => {
-            this._hotelFloor = new HotelFloor(this, this.scene, {width: _LEVELWIDTH, height: _LEVELHEIGHT});
+            this._hotelFloor = new HotelFloor(this, this.scene, { width: _LEVELWIDTH, height: _LEVELHEIGHT });
 
             this.engine.runRenderLoop(this._render);
 
@@ -79,8 +80,21 @@ export class Game {
                     x: ~~((this.c.position.x + 0.5) / SCALE),
                     y: ~~((this.c.position.z + 0.5) / SCALE),
                 };
+                if (this._playerGridPos.x == _LEVELWIDTH - 1 &&
+                    this._playerGridPos.y == _LEVELWIDTH - 1) {
+                    // player is standing on the target.
+                    if(this._ghosts.length === 0) {
+                        // all ghosts are dead
+                        this._state = GameState.WIN;
+                    }
+                }
+
+
                 this._secs.match(AI).map((e) => e.get(AI).update(_dt, e));
                 break;
+                case GameState.WIN:
+                    console.log('You win!');
+                    break;
         }
 
         this.scene.render();
@@ -99,7 +113,7 @@ export class Game {
         this.textures = new Textures();
         await this.textures.load(this.scene);
 
-        this._hud = BABYLON.MeshBuilder.CreatePlane('leveldesc', {size: 0.5});
+        this._hud = BABYLON.MeshBuilder.CreatePlane('leveldesc', { size: 0.5 });
         this._hud.renderingGroupId = 1;
         this._hud.position = new BABYLON.Vector3(0, 0, 1);
         this._hud.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -153,7 +167,7 @@ export class Game {
         xrHelper.baseExperience.camera.checkCollisions = true;
 
         // create flashlight
-        const flM = BABYLON.CreateCylinder('fl', {height: 0.15, diameterTop: 0.02, diameterBottom: 0.03});
+        const flM = BABYLON.CreateCylinder('fl', { height: 0.15, diameterTop: 0.02, diameterBottom: 0.03 });
         const fl = new BABYLON.SpotLight(
             'fl',
             new BABYLON.Vector3(0, -0.1, 0),
@@ -271,6 +285,7 @@ export class Game {
     };
 
     private _spawnGhosts() {
+        
         const basemesh = new BABYLON.Mesh('ghost', this.scene);
 
         var vertexData = new BABYLON.VertexData();
@@ -305,7 +320,7 @@ export class Game {
     }
 
     _createText(mesh, name, font, text, color) {
-        const dt = new BABYLON.DynamicTexture(`dt${name}`, {width: 1200, height: 1200});
+        const dt = new BABYLON.DynamicTexture(`dt${name}`, { width: 1200, height: 1200 });
         const smat = new BABYLON.StandardMaterial(`mat${name}`);
         dt.updateSamplingMode(BABYLON.Texture.NEAREST_SAMPLINGMODE);
         smat.diffuseTexture = dt;
