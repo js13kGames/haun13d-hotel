@@ -28,7 +28,7 @@ Must have:
                 attack = game over
             ✔ Count the killed ghosts @done(24-09-11 21:47)
         ✔ Hotel Floor Model @done(24-09-07 21:40)
-        ☐ Add an elevetor for the exit == win condition (+13 ghosts)
+        ✔ Add an elevetor for the exit == win condition (+13 ghosts) @done(24-09-13 00:21)
         Game States:
             ✔ Pregame Not in XR -> Start the game by entering XR @done(24-09-12 23:24)
             ✔ Playing @done(24-09-12 16:18)

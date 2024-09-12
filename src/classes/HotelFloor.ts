@@ -66,9 +66,9 @@ export class HotelFloor {
         if (p === _GRID_WALL || p === _GRID_START || p === _GRID_END) {
             return false;
         }
-        // Maybe check for distance of start and if there are any ghosts in the way
+        return x > 3 && y > 3;
 
-        return true;
+        //        return true;
     }
 
     //#ifdef DEBUG

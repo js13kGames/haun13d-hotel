@@ -113,6 +113,8 @@ export class Game {
                 setTimeout(async () => {
                     this._flashlight?.dispose();
                     this._xrHelper.enterExitUI.overlay.remove();
+                    this.c.rotation.setAll(0);
+                    this.c.position.set(0, 1.7, 0);
                     await this._xrHelper.baseExperience.exitXRAsync();
                     // @ts-ignore
                     this._resetButton.style.display = 'block';
@@ -173,6 +175,9 @@ export class Game {
             }
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.code === 'KeyW') {
                 this._state = GameState.WIN;
+            }
+            if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.code === 'KeyA') {
+                this._attack();
             }
         });
         //#endif
@@ -367,7 +372,14 @@ export class Game {
         if (this._underAttack) return;
         this._underAttack = true;
         const m = new BABYLON.Mesh('gameover');
-        m.position = this.c.getFrontPosition(2);
+        m.parent = this.c;
+        var cameraForward = this.c.getForwardRay().direction;
+        console.log(cameraForward);
+        m.position = this.c.position.add(cameraForward.scale(1)); // Adjust the scale factor as needed
+        m.rotation.copyFrom(this.c.rotation);
+        // m.lookAt(this.c.position); // Ensure the plane faces the camera
+        //m.rotation.y += Math.PI / 4;
+        //m.position = this.c.getFrontPosition(2);
         m.position.y = 0;
         const vertexData = new BABYLON.VertexData();
         vertexData.positions = [0, 0.5, 0, 0, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0, -0.5, -0.5, 0];
@@ -381,10 +393,10 @@ export class Game {
         material.diffuseTexture.hasAlpha = true;
         material.disableLighting = true;
         m.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-        m.parent = this.c;
+
         m.material = material;
         m.renderingGroupId = 2;
-        this._secs._createEntity([new Scale(0.5, 3, 1), new MeshEntity(m)]);
+        this._secs._createEntity([new Scale(0.5, 8, 1), new MeshEntity(m)]);
         setTimeout(() => {
             this._xrHelper.input.dispose();
             this._secs.match(ControllerInput).map((e) => e.kill());
