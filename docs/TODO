@@ -3,7 +3,7 @@
 @critical BUGS:
     ✔ Clear ghost from list when killed. @done(24-09-11 21:47)
     ✔ Prevent shooting through walls. @done(24-09-11 21:47)
-    ☐ Odd Flickering when exiting VR.
+    ✔ Odd Flickering when exiting VR. @done(24-09-12 23:24)
 
 Must have:
 
@@ -14,9 +14,9 @@ Must have:
     SECS:
         ✔ Implement basics @done(24-09-07 21:23)
     HTML:
-        ☐ Very basic HTML with title
-        ☐ Very basic HTML with Game Over
-        ☐ Button to restart the game == Refresh the browser
+        ✔ Very basic HTML with title @done(24-09-12 23:24)
+        ✔ Very basic HTML with Game Over @done(24-09-12 23:24)
+        ✔ Button to restart the game == Refresh the browser @done(24-09-12 23:24)
     Game:
         Ghosts:
             ✔ Spawn @done(24-09-10 20:37)
@@ -30,12 +30,12 @@ Must have:
         ✔ Hotel Floor Model @done(24-09-07 21:40)
         ☐ Add an elevetor for the exit == win condition (+13 ghosts)
         Game States:
-            ☐ Pregame Not in XR -> Start the game by entering XR
+            ✔ Pregame Not in XR -> Start the game by entering XR @done(24-09-12 23:24)
             ✔ Playing @done(24-09-12 16:18)
             ✔ GameOver @done(24-09-12 21:49)
             ✔ Win @done(24-09-12 16:18)
             Detect 13 ghosts killed and standing on target in front of elevator
-            ☐ Restart the game by refreshing the page = Leaving XR
+            ✔ Restart the game by refreshing the page = Leaving XR @done(24-09-12 23:24)
 flow; NotVR -> Enter VR == Playing -> Dead == EXIT VR
 
 Should have:
@@ -45,7 +45,7 @@ Should have:
       Maybe add 3x3 areas. 
     ☐ Better textures
     ☐ Soundfx
-    ☐ Fade to black on start, gameover and win.
+    ✔ Fade to black on start, gameover and win. @done(24-09-12 23:25)
     ☐ Add a 'You win' and 'You lose' text
     ☐ Better HTML
     ☐ Button to restart the game without refresh
@@ -57,6 +57,8 @@ Could have:
     ☐ Music
     ☐ Stay in VR for whole gameloop
     ☐ Custom 'ENTER VR' button
+    ☐ Instructions
+    ☐ HUD
 
 Would Like:
     ☐ dust particles

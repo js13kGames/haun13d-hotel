@@ -26,7 +26,6 @@ enum GameState {
 
 //#ifdef DEBUG
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
-
 //#endif
 
 export class Game {
@@ -52,8 +51,16 @@ export class Game {
     _currentFade: number = 0;
     _fadeState: number = 0;
     _xrHelper!: BABYLON.WebXRDefaultExperience;
-
+    private _titleScreen!: BABYLON.Node;
+    private _gameOverScreen!: BABYLON.Node;
+    private _resetButton!: HTMLDivElement;
+    private _winScreen!: BABYLON.Node;
     constructor() {
+        this._resetButton = document.getElementById('r')! as HTMLDivElement;
+        this._resetButton?.addEventListener('click', () => {
+            window.location.reload();
+        });
+
         Game.instance = this;
         this._initialize().then(() => {
             this._hotelFloor = new HotelFloor(this, this.scene, {width: _LEVELWIDTH, height: _LEVELHEIGHT});
@@ -65,10 +72,10 @@ export class Game {
             });
 
             this._initializeXR().catch((e) => console.error(e));
-
-            this._spawnGhosts();
-            console.log('Game initialized');
-
+            this._titleScreen = this._createTitle('HAUN13T HOTEL', '   Switch to VR to play', false);
+            this._titleScreen.setEnabled(true);
+            this._gameOverScreen = this._createTitle('   GAME OV3R', '', false);
+            this._winScreen = this._createTitle('     YOU WON !', 'You escaped the Haun13t Hotel', false);
             this._state = GameState.PREGAME;
         });
     }
@@ -82,7 +89,6 @@ export class Game {
         this._secs.match(Scale).map((e) => e.get(Scale).update(_dt, e));
         switch (this._state) {
             case GameState.LOADING:
-                console.log('Loading');
                 break;
             case GameState.PLAYING:
                 if (this._underAttack) break;
@@ -104,12 +110,24 @@ export class Game {
                 this._fadeState = -2;
                 setTimeout(async () => {
                     this._flashlight?.dispose();
-                    this._xrHelper.baseExperience.exitXRAsync();
+                    this._xrHelper.enterExitUI.overlay.remove();
+                    await this._xrHelper.baseExperience.exitXRAsync();
+                    // @ts-ignore
+                    this._resetButton.style.display = 'block';
+                    this._gameOverScreen!.setEnabled(true);
                 }, 2000);
                 break;
             case GameState.WIN:
                 this._fadeState = -0.5;
-                console.log('You win!');
+                setTimeout(async () => {
+                    this._flashlight?.dispose();
+                    this._xrHelper.enterExitUI.overlay.remove();
+                    await this._xrHelper.baseExperience.exitXRAsync();
+
+                    // @ts-ignore
+                    this._resetButton.style.display = 'block';
+                    this._winScreen.setEnabled(true);
+                }, 3000);
                 break;
         }
 
@@ -148,6 +166,9 @@ export class Game {
             }
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.code === 'KeyL') {
                 new BABYLON.HemisphericLight('debug light', new BABYLON.Vector3(7.5, 2.5, 7.5), this.scene);
+            }
+            if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.code === 'KeyW') {
+                this._state = GameState.WIN;
             }
         });
         //#endif
@@ -233,6 +254,8 @@ export class Game {
         this._xrHelper.baseExperience.onStateChangedObservable.add((state) => {
             switch (state) {
                 case BABYLON.WebXRState.IN_XR:
+                    this._titleScreen!.setEnabled(false);
+                    this._spawnGhosts();
                     this._state = GameState.PLAYING;
                     this.c = this._xrHelper.baseExperience.camera!;
                     //this._hud.parent = this.c;
@@ -404,5 +427,55 @@ export class Game {
         dt.drawText(t[0], null, 36, font, color, 'rgba(0,0,0,0)', true, true);
         if (t[1]) dt.drawText(t[1], null, 72, font, color, 'rgba(0,0,0,0)', true, true);
         dt.hasAlpha = true;
+    }
+
+    _createTitle(titleText: string, subtitle: string, xr: boolean) {
+        var titlescreen = new BABYLON.Node('titleParent' + titleText);
+
+        const pressTrigger = BABYLON.MeshBuilder.CreatePlane('PressTrigger' + titleText, {width: 3, height: 0.75});
+        pressTrigger.parent = titlescreen;
+        pressTrigger.position = new BABYLON.Vector3(0, 1.75, 2);
+        //this.shadowS.add(pressTrigger);
+        const pressTriggerTexture = new BABYLON.DynamicTexture('dynamic texture' + titleText, {
+            width: 1200,
+            height: 300,
+        });
+        const ctx = pressTriggerTexture.getContext();
+        const pressTriggerMaterial = new BABYLON.StandardMaterial('Mat' + titleText);
+        pressTriggerMaterial.diffuseTexture = pressTriggerTexture;
+        pressTriggerMaterial.emissiveTexture = pressTriggerTexture;
+        pressTriggerMaterial.specularColor = BABYLON.Color3.Black();
+        pressTrigger.material = pressTriggerMaterial;
+        const font = 'bold 44px monospace';
+
+        pressTriggerTexture.drawText(
+            subtitle, //xr ? 'Press trigger to start' : 'Switch to VR to play',
+            300,
+            215,
+            font,
+            '#7c8898',
+            'rgba(0,0,0,0)',
+            true,
+            true
+        );
+
+        pressTriggerTexture.hasAlpha = true;
+
+        ctx.font = "100px 'Montserrat', Arial, sans-serif";
+        ctx.strokeStyle = '#222';
+        ctx.lineWidth = 16;
+        ctx.strokeText(titleText, 210, 128);
+        ctx.fillStyle = '#4FF';
+        ctx.fillText(titleText, 215, 123);
+        ctx.shadowColor = '#088';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = -4;
+        ctx.shadowOffsetY = 4;
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = '#8FF';
+        ctx.strokeText(titleText, 215, 123);
+        pressTriggerTexture.update();
+        titlescreen.setEnabled(false);
+        return titlescreen;
     }
 }
