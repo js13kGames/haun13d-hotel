@@ -22,7 +22,7 @@ Must have:
             ✔ Spawn @done(24-09-10 20:37)
             ✔ Move @done(24-09-10 23:43)
             ✔ Kill @done(24-09-03 20:52)
-            ☐ Make sure they do not spawn too close to the player.
+            ✔ Make sure they do not spawn too close to the player. @done(24-09-13 00:42)
               Just add a simple check at spawntime
             ✔ Attack player @done(24-09-12 21:50)
                 attack = game over
