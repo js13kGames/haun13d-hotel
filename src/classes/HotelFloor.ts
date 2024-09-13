@@ -71,8 +71,6 @@ export class HotelFloor {
             return false;
         }
         return x > 3 && y > 3;
-
-        //        return true;
     }
 
     //#ifdef DEBUG

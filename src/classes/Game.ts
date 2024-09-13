@@ -347,7 +347,6 @@ export class Game {
                 if (!_closestGhostHit || ghostHit.distance < _closestGhostHit.distance) {
                     _closestGhostHit = ghostHit;
                     _closestGhostIndex = gi;
-                    setTimeout(() => this._audio._play(SFX.HIT_GHOST), 100);
                 }
             }
         });
@@ -359,6 +358,7 @@ export class Game {
                 .match(GhostEntity)
                 .find((e) => e.get(MeshEntity)._mesh === _closestGhostHit?.pickedMesh);
             if (ghostEntity) {
+                setTimeout(() => this._audio._play(SFX.HIT_GHOST), 100);
                 this._ghosts.splice(_closestGhostIndex, 1);
                 ghostEntity.kill();
                 console.log(`Killed ghost, ${this._ghosts.length} remaining`);
