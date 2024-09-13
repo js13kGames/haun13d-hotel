@@ -41,25 +41,27 @@ flow; NotVR -> Enter VR == Playing -> Dead == EXIT VR
 Should have:
     ✔ Better lighting, more sources and omni lights @done(24-09-03 20:52)
     ✔ Batching of models per material. @done(24-09-07 21:22)
-    ☐ More interesting level design
-      Maybe add 3x3 areas. 
-    ☐ Better textures
+    ☐ Particles
     ☐ Soundfx
+    ✔ Less frequent stuff on the walls. @done(24-09-13 08:24)
+    ☐ Music
     ✔ Fade to black on start, gameover and win. @done(24-09-12 23:25)
-    ☐ Add a 'You win' and 'You lose' text
-    ☐ Better HTML
-    ☐ Button to restart the game without refresh
+
+
 
 Could have:
     ✔ A flashlight @done(24-09-07 21:22)
-    ☐ Particles
+    ☐ Better textures
     ☐ Gun effects
-    ☐ Music
     ☐ Stay in VR for whole gameloop
     ☐ Custom 'ENTER VR' button
     ☐ Instructions
     ☐ HUD
-
+    ☐ Button to restart the game without refresh
+    ☐ Add a 'You win' and 'You lose' text
+    ☐ Better HTML
+    ☐ More interesting level design
+        Maybe add 3x3 areas. 
 Would Like:
     ☐ dust particles
     improve SECS:

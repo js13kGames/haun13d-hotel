@@ -21,6 +21,9 @@ const _FLOOR_MESH = '';
 const _CEILING_MESH = '';
 const _FLOOR_ROOT = '';
 
+const _ATLAS1 = 0;
+const _ATLAS2 = 14;
+
 export class HotelFloor {
     /**
      * The grid of the maze
@@ -38,7 +41,7 @@ export class HotelFloor {
     private _scene: BABYLON.Scene;
     private _params: {width: number; height: number};
     private _game: Game;
-    private _baseCube!: BABYLON.Mesh;
+    private _baseCube: BABYLON.Mesh[] = [];
     private _floorRoot: BABYLON.TransformNode;
     private _cubeMat!: BABYLON.StandardMaterial;
 
@@ -49,6 +52,7 @@ export class HotelFloor {
         this.g = this._createGrid(params.width, params.height);
         this._floorRoot = new BABYLON.TransformNode(_FLOOR_ROOT, this._scene);
         this._createBaseMeshes();
+        this._createBaseMeshes(_ATLAS2);
         this._generateMaze();
         this._createMeshesFromGrid();
 
@@ -98,20 +102,21 @@ export class HotelFloor {
     }
     //#endif
 
-    private _createBaseMeshes() {
-        this._baseCube = new BABYLON.Mesh(_CUBE_MESH, this._scene);
+    private _createBaseMeshes(t: number = _ATLAS1) {
+        const i = this._baseCube.push(new BABYLON.Mesh(_CUBE_MESH, this._scene)) - 1;
 
         const vertexData = new BABYLON.VertexData();
 
         vertexData.positions = cube.atlas.positions;
         vertexData.indices = cube.atlas.indices;
         vertexData.uvs = cube.atlas.uvs;
-        vertexData.applyToMesh(this._baseCube);
+        vertexData.applyToMesh(this._baseCube[i]);
+        this._baseCube[i].position.y = -500;
 
-        this._cubeMat = new BABYLON.StandardMaterial(_CUBE_MATERIAL, this._scene);
-        this._baseCube.position.y = -500;
-        this._cubeMat.diffuseTexture = this._game.textures.t[0];
-        this._baseCube.material = this._cubeMat;
+        // I'm aware the material gets overwritten, but for now it doesn't matter
+        this._cubeMat = new BABYLON.StandardMaterial(_CUBE_MATERIAL + t, this._scene);
+        this._cubeMat.diffuseTexture = this._game.textures.t[t];
+        this._baseCube[i].material = this._cubeMat;
     }
 
     // Create an empty grid filled with walls
@@ -212,7 +217,7 @@ export class HotelFloor {
         exit.isPickable = true;
     }
     private _createWallInstance(x: number, y: number): BABYLON.AbstractMesh {
-        const c = this._baseCube.createInstance(_WALL_MESH);
+        const c = this._baseCube[Math.random() > 0.1 ? 0 : 1].createInstance(_WALL_MESH);
         c.checkCollisions = true;
         c.position.set(x, 1.5, y);
         c.rotate(BABYLON.Axis.Y, Math.PI * ~~(Math.random() * 4));
@@ -222,13 +227,13 @@ export class HotelFloor {
     }
 
     private _createCorridor(x: number, y: number) {
-        let c = this._baseCube.createInstance(_FLOOR_MESH);
+        let c = this._baseCube[0].createInstance(_FLOOR_MESH);
         c.checkCollisions = true;
         c.position.set(x, -1.5, y);
         c.parent = this._floorRoot;
 
-        // c = this._baseCube.createInstance(_CEILING_MESH);
-        // c.position.set(x, 4.5, y);
-        // c.parent = this._floorRoot;
+        c = this._baseCube[0].createInstance(_CEILING_MESH);
+        c.position.set(x, 4.5, y);
+        c.parent = this._floorRoot;
     }
 }

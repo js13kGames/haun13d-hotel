@@ -44,7 +44,6 @@
             return Math.floor(num * 100) / 100;
         }
 
-
         const engine = new BABYLON.Engine(document.getElementById('renderCanvas'), true);
         var scene = new BABYLON.Scene(engine);
         BABYLON.SceneLoader.ImportMesh("", "/", "block1.obj", scene, function (meshes) {
