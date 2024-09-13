@@ -371,30 +371,23 @@ export class Game {
     private _attack = () => {
         if (this._underAttack) return;
         this._underAttack = true;
-        const m = new BABYLON.Mesh('gameover');
+        const m = new BABYLON.Mesh('');
         m.parent = this.c;
-        m.position.z = 1;
-        // var cameraForward = this.c.getForwardRay().direction;
-        // console.log(cameraForward);
-        // m.position = this.c.position.add(cameraForward.scale(1)); // Adjust the scale factor as needed
-        // m.rotation.copyFrom(this.c.rotation);
-        //m.position.y = 0;
+        m.position.z = 2;
+        m.position.y = -0.5;
         const vertexData = new BABYLON.VertexData();
         vertexData.positions = [0, 0.5, 0, 0, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0, -0.5, -0.5, 0];
         vertexData.indices = [0, 1, 2, 0, 2, 3, 4, 5, 1, 4, 1, 0];
         vertexData.uvs = [1, 1, 1, 0, 0.83, 0, 0.83, 1, 0.83, 1, 0.83, 0];
         vertexData.applyToMesh(m);
-        const material = new BABYLON.StandardMaterial('gameovermat');
+        const material = new BABYLON.StandardMaterial('');
         material.diffuseTexture = this.textures.t[11];
-        material.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-        //material.specularColor = new BABYLON.Color3(0, 0, 0);
+        material.emissiveColor = new BABYLON.Color3(0.8, 0.8, 0.8);
         material.diffuseTexture.hasAlpha = true;
         material.disableLighting = true;
-        //   m.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-
         m.material = material;
         m.renderingGroupId = 2;
-        this._secs._createEntity([new Scale(0.5, 8, 1), new MeshEntity(m)]);
+        this._secs._createEntity([new Scale(0.1, 2, 1), new MeshEntity(m)]);
         setTimeout(() => {
             this._xrHelper.input.dispose();
             this._secs.match(ControllerInput).map((e) => e.kill());
