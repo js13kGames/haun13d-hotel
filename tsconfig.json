@@ -15,9 +15,10 @@
         "outDir": "dist",
         "lib": ["esnext", "dom"],
         "esModuleInterop": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "types": ["babylonjs"]
     },
-    "exclude": ["node_modules", "wasm test"],
+    "exclude": ["node_modules"],
     "include": ["src/**/*","src/**/.vert","src/**/.frag"],
     "typedocOptions": {
         "entryPoints": ["./src/index.ts"],

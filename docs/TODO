@@ -1,27 +1,72 @@
 # TODO
 
+@critical BUGS:
+    ✔ Clear ghost from list when killed. @done(24-09-11 21:47)
+    ✔ Prevent shooting through walls. @done(24-09-11 21:47)
+    ✔ Odd Flickering when exiting VR. @done(24-09-12 23:24)
+
 Must have:
 
-    TinyWebXR:
-        ✔ Controller support @done(24-08-27 21:58)
-        ✔ Trigger support @done(24-09-03 20:52)
+    ~TinyWebXR:~
+        ~✔ Controller support @done(24-08-27 21:58)~
+        ~✔ Trigger support @done(24-09-03 20:52)~
 
+    SECS:
+        ✔ Implement basics @done(24-09-07 21:23)
+    HTML:
+        ✔ Very basic HTML with title @done(24-09-12 23:24)
+        ✔ Very basic HTML with Game Over @done(24-09-12 23:24)
+        ✔ Button to restart the game == Refresh the browser @done(24-09-12 23:24)
     Game:
         Ghosts:
-            ☐ Spawn
-            ☐ Move
+            ✔ Spawn @done(24-09-10 20:37)
+            ✔ Move @done(24-09-10 23:43)
             ✔ Kill @done(24-09-03 20:52)
-        ☐ Hotel Floor Model
+            ✔ Make sure they do not spawn too close to the player. @done(24-09-13 00:42)
+              Just add a simple check at spawntime
+            ✔ Attack player @done(24-09-12 21:50)
+                attack = game over
+            ✔ Count the killed ghosts @done(24-09-11 21:47)
+        ✔ Hotel Floor Model @done(24-09-07 21:40)
+        ✔ Add an elevetor for the exit == win condition (+13 ghosts) @done(24-09-13 00:21)
+        Game States:
+            ✔ Pregame Not in XR -> Start the game by entering XR @done(24-09-12 23:24)
+            ✔ Playing @done(24-09-12 16:18)
+            ✔ GameOver @done(24-09-12 21:49)
+            ✔ Win @done(24-09-12 16:18)
+            Detect 13 ghosts killed and standing on target in front of elevator
+            ✔ Restart the game by refreshing the page = Leaving XR @done(24-09-12 23:24)
+flow; NotVR -> Enter VR == Playing -> Dead == EXIT VR
 
 Should have:
     ✔ Better lighting, more sources and omni lights @done(24-09-03 20:52)
-    ☐ Batching of models per material.
+    ✔ Batching of models per material. @done(24-09-07 21:22)
+    ☐ Particles
+    ☐ Soundfx
+    ✔ Less frequent stuff on the walls. @done(24-09-13 08:24)
+    ☐ Music
+    ✔ Fade to black on start, gameover and win. @done(24-09-12 23:25)
+
+
 
 Could have:
-    ☐ A flashlight
-
+    ✔ A flashlight @done(24-09-07 21:22)
+    ☐ Better textures
+    ☐ Gun effects
+    ☐ Stay in VR for whole gameloop
+    ☐ Custom 'ENTER VR' button
+    ☐ Instructions
+    ☐ HUD
+    ☐ Button to restart the game without refresh
+    ☐ Add a 'You win' and 'You lose' text
+    ☐ Better HTML
+    ☐ More interesting level design
+        Maybe add 3x3 areas. 
 Would Like:
-
+    ☐ dust particles
+    improve SECS:
+        ☐ Add general update loop
+        ☐ Add active state
 
 #ideas 
 #- Combine all textures into a 4x4 atlas and use 1 mesh for the scene.

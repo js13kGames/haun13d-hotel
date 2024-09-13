@@ -1,13 +1,15 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 function r(num) {
-    return Math.floor(num * 100) / 100;
+    return Math.floor(num * 1000) / 1000;
 }
 
 function parseOBJ(objData) {
+
     const vertices = [];
     const uvs = [];
+    const faces = [];
     let currentMaterial = '';
     const materials = {};
 
@@ -29,33 +31,44 @@ function parseOBJ(objData) {
                     materials[currentMaterial] = {
                         vertices: [],
                         uv: [],
-                        faces: []
+                        faces: [],
+                        indices: []
                     };
                 }
                 break;
             case 'f':
                 const face = parts.slice(1).map(part => {
-                    const [vIndex, vtIndex] = part.split('/').map(str => parseInt(str, 10) - 1);
-                    return { vIndex, vtIndex };
+                    const [vIndex, vtIndex, vNormal] = part.split('/').map(str => parseInt(str, 10) - 1);
+                    return { vIndex, vtIndex, vNormal };
                 });
 
                 // Triangulate if the face has 4 vertices
                 if (face.length === 4) {
-                    materials[currentMaterial].faces.push([face[0], face[1], face[2]]);
-                    materials[currentMaterial].faces.push([face[0], face[2], face[3]]);
+                    //materials[currentMaterial].
+                    faces.push([face[0], face[1], face[2]]);
+                    //materials[currentMaterial].
+                    faces.push([face[0], face[2], face[3]]);
                 } else {
-                    materials[currentMaterial].faces.push(face);
+                    //materials[currentMaterial].
+                    faces.push(face);
                 }
                 break;
         }
     });
-
+    console.dir(faces);
     Object.values(materials).forEach(material => {
-        material.faces.forEach(face => {
-            face.forEach(({ vIndex, vtIndex }) => {
-                material.vertices.push(vertices[vIndex * 3], vertices[vIndex * 3 + 1], vertices[vIndex * 3 + 2]);
-                material.uv.push(uvs[vtIndex * 2], uvs[vtIndex * 2 + 1]);
-            });
+        material.vertices = vertices;
+        //material.uv = uvs;
+        faces.forEach((face, i) => {
+            material.indices.push(face[0].vIndex, face[1].vIndex, face[2].vIndex);
+            material.uv.push(uvs[face[0].vIndex * 2], uvs[face[0].vIndex * 2 + 1]);
+            material.uv.push(uvs[face[1].vIndex * 2], uvs[face[1].vIndex * 2 + 1]);
+            material.uv.push(uvs[face[2].vIndex * 2], uvs[face[2].vIndex * 2 + 1]);
+            //   face.forEach(({ vIndex, vtIndex, vNormal }) => {
+            //     // material.vertices.push(vertices[vIndex * 3], vertices[vIndex * 3 + 1], vertices[vIndex * 3 + 2]);
+
+            //     material.indices.push(vIndex);
+            // });
         });
     });
 
@@ -78,8 +91,12 @@ fs.readFile(filePath, 'utf8', (err, data) => {
     }
 
     const materials = parseOBJ(data);
-    const outputLines = Object.entries(materials).map(([material, { vertices, uv }]) => {
-        return `this.WebXR.add('${material}', {vertices: [${vertices.join(',')}], uv: [${uv.join(',')}]});`;
+    const outputLines = Object.entries(materials).map(([material, { vertices, uv, indices }]) => {
+        return `'${material}': {
+vertices: [${vertices.join(',')}], 
+uv: [${uv.join(',')}],
+indices: [${indices.join(',')}]
+}`;
     });
 
     // Write output to console, or could be written to a file

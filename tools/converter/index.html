@@ -1,0 +1,96 @@
+<html>
+
+<head>
+    <title>Converter</title>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <style>
+        #dropArea {
+            border: 2px dashed #ccc;
+            border-radius: 20px;
+            width: 300px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px;
+        }
+
+        #output-image {
+            width: 90%;
+            height: 100px;
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            word-wrap: break-word;
+            overflow: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Image conversion</h2>
+    <div id="dropArea">Drop your image here</div>
+    <textarea id="output-image"></textarea>
+
+    <hr />
+    <h2>model data</h2>
+    <canvas id="renderCanvas" style="display: none;"></canvas>
+    <div>
+        <textarea width="100%" height="100%" style="width:100%;height: 100%;" id="output"></textarea>
+    </div>
+    <script>
+        function r(num) {
+            return Math.floor(num * 100) / 100;
+        }
+
+        const engine = new BABYLON.Engine(document.getElementById('renderCanvas'), true);
+        var scene = new BABYLON.Scene(engine);
+        BABYLON.SceneLoader.ImportMesh("", "/", "block1.obj", scene, function (meshes) {
+            const mesh = meshes[0];
+            var positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind).map(v=>r(v));
+            var normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+            var colors = mesh.getVerticesData(BABYLON.VertexBuffer.ColorKind);
+            var uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind).map(v=>r(v));
+
+            var indices = mesh.getIndices();
+
+            console.log(uvs)
+            document.getElementById('output').value = JSON.stringify({
+                positions: positions,
+                uvs: uvs,
+                indices: indices
+            });
+        });
+
+        dropArea.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropArea.style.backgroundColor = '#f0f0f0';
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.backgroundColor = '';
+        });
+
+        dropArea.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropArea.style.backgroundColor = '';
+
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onloadend = function () {
+                        document.getElementById('output-image').value = reader.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Please drop an image file.');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
