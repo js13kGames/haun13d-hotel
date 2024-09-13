@@ -1,3 +1,4 @@
+import {SFX, Soundfx} from './Audio';
 import {_GhostMeshData} from './Ghost';
 import {_GunMeshData} from './Gun';
 import {HotelFloor} from './HotelFloor';
@@ -55,6 +56,7 @@ export class Game {
     private _gameOverScreen!: BABYLON.Node;
     private _resetButton!: HTMLDivElement;
     private _winScreen!: BABYLON.Node;
+    private _audio: Soundfx;
     constructor() {
         this._resetButton = document.getElementById('r')! as HTMLDivElement;
         this._resetButton?.addEventListener('click', () => {
@@ -62,6 +64,8 @@ export class Game {
         });
 
         Game.instance = this;
+        this._audio = new Soundfx();
+        this._audio._initAudio();
         this._initialize().then(() => {
             this._hotelFloor = new HotelFloor(this, this.scene, {width: _LEVELWIDTH, height: _LEVELHEIGHT});
 
@@ -102,6 +106,7 @@ export class Game {
                     if (this._ghosts.length === 0) {
                         // all ghosts are dead
                         this._state = GameState.WIN;
+                        this._audio._play(SFX.WIN);
                         this._xrHelper.input.dispose();
                         this._secs.match(ControllerInput).map((e) => e.kill());
                     }
@@ -319,17 +324,10 @@ export class Game {
         this._xrHelper.input.onControllerAddedObservable.add((_controller) => {
             this._inputS._xrControllers.push(_controller);
         });
-
-        // xrHelper.baseExperience.sessionManager.onXRFrameObservable.add(() => {
-        //     if (xrHelper.baseExperience.state === BABYLON.WebXRState.IN_XR) {
-        //         //triangle.rotation.y = (0.5 + movementFeature..movementDirection.toEulerAngles().y);
-        //         //triangle.position.set(xrHelper.input.xrCamera.position.x, 0.5, xrHelper.input.xrCamera.position.z);
-        //     }
-        // });
     }
     private _shoot = (position: BABYLON.Vector3, forward: BABYLON.Vector3) => {
         const _ray = new BABYLON.Ray(position, forward, 25);
-
+        this._audio._play(SFX.SHOOT);
         // Initialize closest hits
         let _closestWallHit!: BABYLON.PickingInfo | null;
         let _closestGhostHit!: BABYLON.PickingInfo | null;
@@ -349,6 +347,7 @@ export class Game {
                 if (!_closestGhostHit || ghostHit.distance < _closestGhostHit.distance) {
                     _closestGhostHit = ghostHit;
                     _closestGhostIndex = gi;
+                    setTimeout(() => this._audio._play(SFX.HIT_GHOST), 100);
                 }
             }
         });
@@ -389,6 +388,7 @@ export class Game {
         m.material = material;
         m.renderingGroupId = 2;
         this._secs._createEntity([new Scale(0.1, 2, 1), new MeshEntity(m)]);
+        this._audio._play(SFX.GAME_OVER);
         setTimeout(() => {
             this._xrHelper.input.dispose();
             this._secs.match(ControllerInput).map((e) => e.kill());
