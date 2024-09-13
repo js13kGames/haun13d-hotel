@@ -37,7 +37,8 @@ Must have:
             Detect 13 ghosts killed and standing on target in front of elevator
             ✔ Restart the game by refreshing the page = Leaving XR @done(24-09-12 23:24)
 flow; NotVR -> Enter VR == Playing -> Dead == EXIT VR
-
+    ☐ Release Artwork
+    
 Should have:
     ✔ Better lighting, more sources and omni lights @done(24-09-03 20:52)
     ✔ Batching of models per material. @done(24-09-07 21:22)
