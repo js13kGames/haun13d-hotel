@@ -373,14 +373,12 @@ export class Game {
         this._underAttack = true;
         const m = new BABYLON.Mesh('gameover');
         m.parent = this.c;
-        var cameraForward = this.c.getForwardRay().direction;
-        console.log(cameraForward);
-        m.position = this.c.position.add(cameraForward.scale(1)); // Adjust the scale factor as needed
-        m.rotation.copyFrom(this.c.rotation);
-        // m.lookAt(this.c.position); // Ensure the plane faces the camera
-        //m.rotation.y += Math.PI / 4;
-        //m.position = this.c.getFrontPosition(2);
-        m.position.y = 0;
+        m.position.z = 1;
+        // var cameraForward = this.c.getForwardRay().direction;
+        // console.log(cameraForward);
+        // m.position = this.c.position.add(cameraForward.scale(1)); // Adjust the scale factor as needed
+        // m.rotation.copyFrom(this.c.rotation);
+        //m.position.y = 0;
         const vertexData = new BABYLON.VertexData();
         vertexData.positions = [0, 0.5, 0, 0, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0, -0.5, -0.5, 0];
         vertexData.indices = [0, 1, 2, 0, 2, 3, 4, 5, 1, 4, 1, 0];
@@ -392,7 +390,7 @@ export class Game {
         //material.specularColor = new BABYLON.Color3(0, 0, 0);
         material.diffuseTexture.hasAlpha = true;
         material.disableLighting = true;
-        m.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+        //   m.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
         m.material = material;
         m.renderingGroupId = 2;
