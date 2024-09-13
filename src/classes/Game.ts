@@ -72,10 +72,11 @@ export class Game {
             });
 
             this._initializeXR().catch((e) => console.error(e));
-            this._titleScreen = this._createTitle('HAUN13T HOTEL', '   Switch to VR to play', false);
+            this._titleScreen = this._createTitle('HAUN13D HOTEL', '   Switch to VR to play', false);
+            //this._titleScreen = this._createTitle('HAUN13D HOTEL', '', false);
             this._titleScreen.setEnabled(true);
             this._gameOverScreen = this._createTitle('   GAME OV3R', '', false);
-            this._winScreen = this._createTitle('     YOU WON !', 'You escaped the Haun13t Hotel', false);
+            this._winScreen = this._createTitle('     YOU WON !', 'You escaped the Haun13d Hotel', false);
             this._state = GameState.PREGAME;
         });
     }
